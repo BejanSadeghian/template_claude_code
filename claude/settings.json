@@ -1,0 +1,14 @@
+{
+  "$comment": "Project-scoped Claude Code settings. Loaded automatically when the IDE opens.",
+  "outputStyle": "concise",
+  "additionalDirectories": [
+    "claude",
+    "docs/specs",
+    "docs/runbook"
+  ],
+  "commands": {
+    "spec":   { "path": "claude/commands/spec.md",   "description": "Create a versioned spec + branch before coding" },
+    "ship":   { "path": "claude/commands/ship.md",   "description": "Push, PR, merge, deploy, verify" },
+    "verify": { "path": "claude/commands/verify.md", "description": "Run the full local gate" }
+  }
+}

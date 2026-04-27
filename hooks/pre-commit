@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+# Fast checks only — keep < 5s for staged files.
+# Wire up: `git config core.hooksPath hooks` (post-create.sh runs this).
+set -e
+
+if [ -f package.json ]; then
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm exec lint-staged --diff HEAD || true
+  else
+    npx --no-install lint-staged || true
+  fi
+fi
+
+if [ -f .pre-commit-config.yaml ]; then
+  pre-commit run --hook-stage commit
+fi

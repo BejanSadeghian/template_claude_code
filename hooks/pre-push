@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# Heavier gate before code leaves the laptop.
+set -e
+
+if [ -f package.json ]; then
+  pnpm verify
+fi
+
+if [ -f .pre-commit-config.yaml ]; then
+  pre-commit run --hook-stage push
+fi
+
+# iOS check (host only — CI handles this on macos-latest)
+if [ -f scripts/ios-test.sh ] && [ "$(uname -s)" = "Darwin" ]; then
+  scripts/ios-test.sh --quick || {
+    echo "iOS quick tests failed — push aborted." >&2
+    exit 1
+  }
+fi

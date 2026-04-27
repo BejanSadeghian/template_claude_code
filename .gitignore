@@ -1,0 +1,47 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Node
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Tests / artifacts
+playwright-report/
+test-results/
+*.log
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Railway
+.railway/
+
+# iOS / Xcode
+ios/build/
+ios/DerivedData/
+ios/Pods/
+*.xcuserstate
+xcuserdata/
