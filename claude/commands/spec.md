@@ -7,8 +7,6 @@ Steps:
 2. Slug: kebab-case, ≤ 5 words.
 3. Copy `docs/specs/TEMPLATE.md` to `docs/specs/NNNN-<slug>.md`.
 4. Fill: Prompt (verbatim), Goal, Scope, Out of scope, Acceptance criteria (each testable), Risks, Subtasks.
-5. Create branch: `git checkout -b feat/NNNN-<slug>` (or `spec/...` for research-only).
-6. Commit just the spec: `git add docs/specs/NNNN-<slug>.md && git commit -m "spec: NNNN-<slug>"`.
-7. Push branch and open draft PR: `gh pr create --draft --title "feat(NNNN): <slug>" --body-file docs/specs/NNNN-<slug>.md`.
+5. Commit just the spec on `main`: `git add docs/specs/NNNN-<slug>.md && git commit -m "spec: NNNN-<slug>"`.
 
-Then proceed to implementation. Append progress notes to the spec under "Build log" as you go. Tick acceptance checkboxes only when verified.
+Then proceed to implementation. Append progress notes to the spec under "Build log" as you go. Tick acceptance checkboxes only when verified. If isolation is genuinely needed (risky refactor, long-running work, external collaborator), branch off — otherwise stay on `main`.

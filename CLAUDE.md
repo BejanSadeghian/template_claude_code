@@ -16,10 +16,9 @@ Whenever I give you a todo list, a feature request, or a non-trivial prompt, **b
    - `NNNN` = next zero-padded integer. Run `ls docs/specs | grep -E '^[0-9]{4}-' | tail -1` to find the last one.
    - Slug = kebab-case, ≤ 5 words.
 2. The spec records: my prompt verbatim, restated goal, scope boundaries, acceptance criteria (testable), out-of-scope notes, risks, and a checklist of subtasks.
-3. Create a branch named `spec/NNNN-<slug>` (or `feat/NNNN-<slug>` for build work).
-4. Commit the spec **first**, in its own commit, before any implementation.
-5. As you build, append progress notes + any deviation from the spec to the same file under "Build log". Update acceptance status inline.
-6. If I prompt mid-feature, append the new prompt under "Build log" with a timestamp; never silently change scope.
+3. Commit the spec **first**, in its own commit, before any implementation.
+4. As you build, append progress notes + any deviation from the spec to the same file under "Build log". Update acceptance status inline.
+5. If I prompt mid-feature, append the new prompt under "Build log" with a timestamp; never silently change scope.
 
 ## Definition of done
 
@@ -32,20 +31,17 @@ A task is **not done** until all of these pass — verify each, do not assume:
 | Integration / API tests | `pnpm test:api` |
 | UI / E2E tests (if webapp) | `pnpm test:e2e` |
 | Local hooks | `pre-commit` and `pre-push` ran clean |
-| Branch pushed | `git push` exit 0; `gh api repos/:owner/:repo/commits/<sha>` returns the commit |
-| PR opened | `gh pr view --json state,url` shows OPEN; CI green |
-| PR merged (if applicable) | `gh pr view --json state` shows MERGED |
+| Pushed | `git push` exit 0; `gh api repos/:owner/:repo/commits/<sha>` returns the commit |
 | Deploy succeeded | `scripts/verify-deploy.sh` exit 0 (smoke + health endpoint) |
 | Spec updated | Acceptance checkboxes ticked, Build log finalized |
 
 If any step fails, fix it or open a follow-up spec — do not silently mark complete.
 
-## Branching + commits
+## Commits
 
-- One feature → one branch → one PR. Never push to `main` directly.
+- Commit directly to `main`. Branches + PRs are optional, only when isolation actually helps (long-running work, risky refactors, external collaborators).
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`.
 - Reference spec id in commit body: `Spec: 0042`.
-- Keep PR description = spec summary + test evidence.
 
 ## Testing defaults
 
@@ -55,7 +51,7 @@ If any step fails, fix it or open a follow-up spec — do not silently mark comp
 
 ## Runbook + services
 
-- Anything that requires an external service (Postgres, Redis, Stripe, Resend, Railway plugin, S3, etc.) **must** be documented in `docs/runbook/SERVICES.md` the same PR it's introduced.
+- Anything that requires an external service (Postgres, Redis, Stripe, Resend, Railway plugin, S3, etc.) **must** be documented in `docs/runbook/SERVICES.md` in the same commit it's introduced.
 - Recreate steps for blowing away cloud env: `docs/runbook/RECREATE.md`. Update it when infra changes.
 
 ## Anything missing?

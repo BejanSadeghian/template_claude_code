@@ -1,7 +1,6 @@
 # NNNN — <slug>
 
 - **Status**: draft | in-progress | done | abandoned
-- **Branch**: `feat/NNNN-<slug>`
 - **Owner**: <handle>
 - **Created**: YYYY-MM-DD
 - **Last updated**: YYYY-MM-DD

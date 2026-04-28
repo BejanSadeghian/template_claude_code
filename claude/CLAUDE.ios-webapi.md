@@ -26,7 +26,7 @@ This template assumes a **monorepo** with two surfaces:
 
 ## API testing for iOS endpoints
 - Every endpoint consumed by iOS gets a contract test that pins request + response shape.
-- When iOS adds a screen that calls a new endpoint, the same PR adds the API test.
+- When iOS adds a screen that calls a new endpoint, the same commit adds the API test.
 
 ## CI shape
 - `.github/workflows/ci.yml` runs API tests on `ubuntu-latest`.
