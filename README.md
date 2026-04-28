@@ -12,6 +12,29 @@ Modern Claude Code devcontainer + workflow scaffolding for VS Code.
 - **Runbook** for Railway recreate-from-scratch + incidents.
 - **Per-stack guidance**: Node/TS webapp and iOS-app + web API.
 
+## Quick start: new repo from this template
+
+**One-time (template owner):** on GitHub → repo → Settings → check **Template repository**.
+
+**Each new project (preferred — uses GitHub's template flow):**
+
+```bash
+gh repo create <new-name> --template BejanSadeghian/template_claude_code --private --clone
+cd <new-name>
+code .   # then "Reopen in Container"
+```
+
+**Fallback (no template flag — clone + reset history):**
+
+```bash
+git clone https://github.com/BejanSadeghian/template_claude_code.git <new-name>
+cd <new-name>
+rm -rf .git && git init -b main
+gh repo create <new-name> --private --source=. --push
+```
+
+Then inside the new repo's container: `gh auth login`, `railway login`, `bash scripts/setup-hooks.sh` (if `post-create.sh` didn't run it), and update project name references in `README.md` / `CLAUDE.md` before the first `/spec`.
+
 ## First-time setup
 
 1. Clone, open in VS Code, "Reopen in Container".
