@@ -1,12 +1,14 @@
-# /spec — capture intent before code
+# /spec — capture intent at commit time
 
-Use whenever the user gives a feature request, todo list, or non-trivial prompt.
+Trigger: when the user asks to commit, push, or ship — not on every prompt. During iteration, no spec.
 
 Steps:
 1. Find next id: `ls docs/specs | grep -E '^[0-9]{4}-' | sort | tail -1` → increment.
 2. Slug: kebab-case, ≤ 5 words.
 3. Copy `docs/specs/TEMPLATE.md` to `docs/specs/NNNN-<slug>.md`.
-4. Fill: Prompt (verbatim), Goal, Scope, Out of scope, Acceptance criteria (each testable), Risks, Subtasks.
-5. Commit just the spec on `main`: `git add docs/specs/NNNN-<slug>.md && git commit -m "spec: NNNN-<slug>"`.
+4. Fill: the consolidated prompts that drove the work (paste verbatim, in order), Goal, Scope, Out of scope, Acceptance criteria (each testable, tick what's already verified), Risks, What was built.
+5. Stage the spec with the work and commit together: `git add docs/specs/NNNN-<slug>.md <impl files> && git commit`. For large diffs, split: spec-only commit first, then implementation.
 
-Then proceed to implementation. Append progress notes to the spec under "Build log" as you go. Tick acceptance checkboxes only when verified. If isolation is genuinely needed (risky refactor, long-running work, external collaborator), branch off — otherwise stay on `main`.
+Skip the spec entirely for trivial commits (typo fixes, formatting, comment tweaks, dependency bumps).
+
+If a follow-up prompt extends the same area later, append the new prompt to the existing spec's "Build log" before the next commit.

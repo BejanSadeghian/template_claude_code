@@ -8,17 +8,20 @@ Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emoj
 - Slash command playbooks live in `claude/commands/` — `/spec`, `/ship`, `/verify`.
 - If unsure which stack, ask one question, then proceed.
 
-## Spec-first workflow (mandatory)
+## Spec-on-commit (mandatory)
 
-Whenever I give you a todo list, a feature request, or a non-trivial prompt, **before writing code**:
+I'll prompt and iterate freely without specs. **Do not create a spec just because a prompt arrived.** Only create one when I ask to commit (or push, or ship) — that's the trigger.
+
+At commit time:
 
 1. Create or update a spec at `docs/specs/NNNN-<slug>.md` using `docs/specs/TEMPLATE.md`.
    - `NNNN` = next zero-padded integer. Run `ls docs/specs | grep -E '^[0-9]{4}-' | tail -1` to find the last one.
    - Slug = kebab-case, ≤ 5 words.
-2. The spec records: my prompt verbatim, restated goal, scope boundaries, acceptance criteria (testable), out-of-scope notes, risks, and a checklist of subtasks.
-3. Commit the spec **first**, in its own commit, before any implementation.
-4. As you build, append progress notes + any deviation from the spec to the same file under "Build log". Update acceptance status inline.
-5. If I prompt mid-feature, append the new prompt under "Build log" with a timestamp; never silently change scope.
+2. The spec records: the consolidated prompts that drove the work (paste verbatim, in order), restated goal, scope, acceptance criteria (testable), out-of-scope notes, risks, what was actually built.
+3. Stage the spec with the work and commit them together. For large diffs, optionally commit the spec first as its own commit, then the implementation.
+4. If I follow up later with prompts that extend the same area, append them to the existing spec's "Build log" before the next commit.
+
+Trivial commits (typo fixes, formatting, comment tweaks, dependency bumps) skip the spec.
 
 ## Definition of done
 
