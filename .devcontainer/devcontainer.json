@@ -79,12 +79,12 @@
   "onCreateCommand": "sudo /usr/local/bin/post-create.sh",
   "postStartCommand": "sudo /usr/local/bin/init-firewall.sh && /usr/local/bin/post-create.sh --start",
   "waitFor": "postStartCommand",
-  "forwardPorts": [3000, 3001, 5173, 8000, 8080],
   "portsAttributes": {
     "3000": { "label": "Web (Next/Node)", "onAutoForward": "notify" },
     "3001": { "label": "API", "onAutoForward": "notify" },
     "5173": { "label": "Vite", "onAutoForward": "silent" },
     "8000": { "label": "Python API", "onAutoForward": "silent" },
     "8080": { "label": "Alt", "onAutoForward": "silent" }
-  }
+  },
+  "otherPortsAttributes": { "onAutoForward": "notify" }
 }
