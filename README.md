@@ -6,8 +6,8 @@ Modern Claude Code devcontainer + workflow scaffolding for VS Code.
 
 - **Sandboxed devcontainer** (Node 22, gh, Railway CLI, ripgrep/fd, Python tooling) with a default-deny firewall + editable allowlist (`.devcontainer/allowed-domains.txt`).
 - **Random per-clone VS Code banner color** so windows are visually distinct.
-- **Spec-first workflow** for Claude: every prompt → a versioned spec under `docs/specs/NNNN-*.md` → a branch → a PR.
-- **Strict definition of done**: lint, typecheck, unit, API, E2E, push verified, PR merged, deploy verified — all checked.
+- **Spec-on-commit workflow** for Claude: iterate freely, then a versioned spec under `docs/specs/NNNN-*.md` is created at commit time.
+- **Strict definition of done**: lint, typecheck, unit, API, E2E, push verified, deploy verified — all checked.
 - **CI on GitHub Actions** + matching local git hooks (`hooks/`).
 - **Runbook** for Railway recreate-from-scratch + incidents.
 - **Per-stack guidance**: Node/TS webapp and iOS-app + web API.
@@ -18,11 +18,23 @@ Modern Claude Code devcontainer + workflow scaffolding for VS Code.
 
 **Each new project (preferred — uses GitHub's template flow):**
 
+GitHub copies the template asynchronously, so do **not** use `--clone` on `gh repo create` — the clone races the copy and you'll hit `fatal: couldn't find remote ref refs/heads/main`. Split it into two steps:
+
 ```bash
-gh repo create <new-name> --template BejanSadeghian/template_claude_code --private --clone
+# 1. create the repo from the template (no --clone)
+gh repo create <new-name> --template BejanSadeghian/template_claude_code --private
+
+# 2. confirm GitHub finished copying (should print "main")
+gh api repos/BejanSadeghian/<new-name>/branches --jq '.[].name'
+
+# 3. clone it locally
+cd ~/Dev   # or wherever you keep repos
+gh repo clone BejanSadeghian/<new-name>
 cd <new-name>
-code .   # then "Reopen in Container"
+code .     # then "Reopen in Container"
 ```
+
+If step 2 returns nothing, wait a couple seconds and retry — the copy is still in flight.
 
 **Fallback (no template flag — clone + reset history):**
 
