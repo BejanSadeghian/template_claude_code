@@ -2,7 +2,7 @@
 
 - **Status**: in-progress
 - **Branch**: `feat/0001-readme-quickstart`
-- **Owner**: BejanSadeghian
+- **Owner**: <github_account>
 - **Created**: 2026-04-27
 - **Last updated**: 2026-04-27
 

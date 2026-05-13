@@ -1,7 +1,7 @@
 # 0004 — readme-template-two-step
 
 - **Status**: done
-- **Owner**: BejanSadeghian
+- **Owner**: <github_account>
 - **Created**: 2026-04-27
 - **Last updated**: 2026-04-27
 
@@ -39,7 +39,7 @@ Document the two-step `gh repo create` then `gh repo clone` flow in the README s
 
 ## Test evidence
 
-Docs-only change. The two-step flow is the exact sequence the user just ran successfully against `BejanSadeghian/notetaking`.
+Docs-only change. The two-step flow is the exact sequence the user just ran successfully against `<github_account>/<repo>`.
 
 ## Scope changes
 

@@ -1,7 +1,7 @@
 # 0002 — spec-on-commit
 
 - **Status**: done
-- **Owner**: BejanSadeghian
+- **Owner**: <github_account>
 - **Created**: 2026-04-27
 - **Last updated**: 2026-04-27
 

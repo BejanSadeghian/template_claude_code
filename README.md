@@ -25,11 +25,11 @@ GitHub copies the template asynchronously, so do **not** use `--clone` on `gh re
 gh repo create <new-name> --template BejanSadeghian/template_claude_code --private
 
 # 2. confirm GitHub finished copying (should print "main")
-gh api repos/BejanSadeghian/<new-name>/branches --jq '.[].name'
+gh api repos/<github_account>/<new-name>/branches --jq '.[].name'
 
 # 3. clone it locally
 cd ~/Dev   # or wherever you keep repos
-gh repo clone BejanSadeghian/<new-name>
+gh repo clone <github_account>/<new-name>
 cd <new-name>
 code .     # then "Reopen in Container"
 ```

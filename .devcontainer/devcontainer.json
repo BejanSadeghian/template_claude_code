@@ -1,5 +1,5 @@
 {
-  "name": "Claude Code Sandbox",
+  "name": "${localWorkspaceFolderBasename}",
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
