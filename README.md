@@ -5,7 +5,8 @@ Modern Claude Code devcontainer + workflow scaffolding for VS Code.
 ## What this gives you
 
 - **Devcontainer** (Node 22, gh, Railway CLI, ripgrep/fd, Python tooling, `sox` for Claude voice). Permissive outbound network — you auth what you need. Full passwordless `sudo` for the `node` user.
-- **Host plugin reuse**: your `~/.claude/plugins` and `~/.claude/skills` are bind-mounted read-only, so Claude Code in the container uses the same plugins you already installed.
+- **Host Claude reuse**: your entire host `~/.claude` is bind-mounted read-only into the container, and plugins/skills/settings are symlinked into the writable Claude config dir on start — Claude Code in the container sees what you've installed without copying.
+- **Claude Code auto-update** on every container start (`npm update -g @anthropic-ai/claude-code`).
 - **Template sync on container start**: detects updates to template-owned files and prompts to accept/reject/defer interactively (`scripts/template-sync.sh`).
 - **Random per-clone VS Code banner color** so windows are visually distinct.
 - **Spec-on-commit workflow** for Claude: iterate freely, then a versioned spec under `docs/specs/NNNN-*.md` is created at commit time.
@@ -51,25 +52,32 @@ Then inside the new repo's container: `gh auth login`, `railway login`, `bash sc
 
 ## First-time setup
 
-1. **Host prereqs (one-time):** ensure `~/.claude/plugins` and `~/.claude/skills` exist on your host, otherwise the container will fail to start.
+1. **Host prereqs (one-time):** ensure `~/.claude` exists on your host (it does if you've ever run Claude Code). The container bind-mounts the whole directory; if it's missing, container start will fail.
    ```bash
-   mkdir -p ~/.claude/plugins ~/.claude/skills
+   mkdir -p ~/.claude
    ```
 2. Clone, open in VS Code, "Reopen in Container".
 3. On first start, `post-create.sh` picks a random title-bar color and writes `.vscode/settings.json` (it persists).
 4. Authenticate whatever you need yourself — e.g. `gh auth login`, `railway login`. Nothing is auto-authed.
 5. Read `CLAUDE.md`. Open Claude Code and run `/spec` for your first feature.
 
-## Host Claude plugins & skills
+## Host Claude config (plugins, skills, settings)
 
-The devcontainer mounts your host `~/.claude/plugins` and `~/.claude/skills` read-only at `/home/node/.claude/{plugins,skills}`. That means:
+The devcontainer bind-mounts your entire host `~/.claude` read-only at `/home/node/.claude-host`. On every container start, `post-create.sh` symlinks these discovery paths from host into the writable Claude config dir (`/home/node/.claude`):
 
-- Claude Code inside the container sees the same plugins/skills you installed on your host.
-- The container does not auto-install plugins for you — install on the host, they appear in the container.
-- Auth, projects, and history stay container-isolated (separate named volume).
-- Read-only: install/update plugins from your host, not inside the container.
+- `plugins/`, `skills/`, `commands/`, `agents/`, `output-styles/`, `marketplaces/`
+- `settings.json`, `plugins.json`
 
-If you don't want this, remove the two `~/.claude/plugins` and `~/.claude/skills` lines from `.devcontainer/devcontainer.json` `mounts`.
+So Claude Code in the container sees the same plugins, skills, and settings (incl. which marketplaces/plugins are enabled) as your host. Sessions, history, projects, and auth state stay container-isolated in a named volume.
+
+Implications:
+- Host is source of truth — install/update plugins on the host, restart the container.
+- Auth tokens inside host `settings.json` will be visible to the container. Inspect your host settings if that matters to you.
+- To opt out, remove the `~/.claude` bind in `.devcontainer/devcontainer.json` and the symlink step in `post-create.sh`.
+
+## Claude Code version
+
+Pinned at image build time to whatever was `latest` then. `post-create.sh --start` runs `npm update -g @anthropic-ai/claude-code` on every container start to keep it current. Pin a specific version via the `CLAUDE_CODE_VERSION` build arg in `devcontainer.json` if you want reproducibility.
 
 ## Files
 

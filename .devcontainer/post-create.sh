@@ -85,7 +85,34 @@ if [ -f .pre-commit-config.yaml ] && command -v pre-commit >/dev/null 2>&1; then
     pre-commit install || true
 fi
 
-# Step 6: prompt for template updates (TTY only; silent if up-to-date)
+# Step 6: surface host ~/.claude (plugins, skills, settings) via symlinks
+# Host ~/.claude is mounted read-only at /home/node/.claude-host.
+# /home/node/.claude is a writable named volume (sessions, history, projects).
+# We symlink the discovery paths from host into the writable dir so Claude Code
+# sees host plugins/skills/settings without copying or losing write state.
+HOST_CLAUDE="/home/node/.claude-host"
+LOCAL_CLAUDE="/home/node/.claude"
+if [ -d "$HOST_CLAUDE" ]; then
+    mkdir -p "$LOCAL_CLAUDE"
+    for item in plugins skills settings.json plugins.json marketplaces commands agents output-styles; do
+        SRC="$HOST_CLAUDE/$item"
+        DST="$LOCAL_CLAUDE/$item"
+        [ -e "$SRC" ] || continue
+        # If DST is already the right symlink, leave it.
+        if [ -L "$DST" ] && [ "$(readlink "$DST")" = "$SRC" ]; then
+            continue
+        fi
+        rm -rf "$DST"
+        ln -s "$SRC" "$DST"
+    done
+fi
+
+# Step 7: keep Claude Code up to date (every container start)
+if command -v npm >/dev/null 2>&1; then
+    npm update -g @anthropic-ai/claude-code >/dev/null 2>&1 || true
+fi
+
+# Step 8: prompt for template updates (TTY only; silent if up-to-date)
 if [ "$MODE" = "--start" ] && [ -f scripts/template-sync.sh ] && [ -d .git ]; then
     bash scripts/template-sync.sh || true
 fi
