@@ -4,10 +4,12 @@ Modern Claude Code devcontainer + workflow scaffolding for VS Code.
 
 ## What this gives you
 
-- **Sandboxed devcontainer** (Node 22, gh, Railway CLI, ripgrep/fd, Python tooling) with a default-deny firewall + editable allowlist (`.devcontainer/allowed-domains.txt`).
+- **Devcontainer** (Node 22, gh, Railway CLI, ripgrep/fd, Python tooling, `sox` for Claude voice). Permissive outbound network — you auth what you need. Full passwordless `sudo` for the `node` user.
+- **Host plugin reuse**: your `~/.claude/plugins` and `~/.claude/skills` are bind-mounted read-only, so Claude Code in the container uses the same plugins you already installed.
+- **Template sync on container start**: detects updates to template-owned files and prompts to accept/reject/defer interactively (`scripts/template-sync.sh`).
 - **Random per-clone VS Code banner color** so windows are visually distinct.
 - **Spec-on-commit workflow** for Claude: iterate freely, then a versioned spec under `docs/specs/NNNN-*.md` is created at commit time.
-- **Strict definition of done**: lint, typecheck, unit, API, E2E, push verified, deploy verified — all checked.
+- **Definition of done** scaffolding: lint, typecheck, unit, API, E2E, push verified, deploy verified.
 - **CI on GitHub Actions** + matching local git hooks (`hooks/`).
 - **Runbook** for Railway recreate-from-scratch + incidents.
 - **Per-stack guidance**: Node/TS webapp and iOS-app + web API.
@@ -49,10 +51,25 @@ Then inside the new repo's container: `gh auth login`, `railway login`, `bash sc
 
 ## First-time setup
 
-1. Clone, open in VS Code, "Reopen in Container".
-2. On first start, `post-create.sh` picks a random title-bar color and writes `.vscode/settings.json` (it persists).
-3. Authenticate: `gh auth login` and `railway login`.
-4. Read `CLAUDE.md`. Open Claude Code and run `/spec` for your first feature.
+1. **Host prereqs (one-time):** ensure `~/.claude/plugins` and `~/.claude/skills` exist on your host, otherwise the container will fail to start.
+   ```bash
+   mkdir -p ~/.claude/plugins ~/.claude/skills
+   ```
+2. Clone, open in VS Code, "Reopen in Container".
+3. On first start, `post-create.sh` picks a random title-bar color and writes `.vscode/settings.json` (it persists).
+4. Authenticate whatever you need yourself — e.g. `gh auth login`, `railway login`. Nothing is auto-authed.
+5. Read `CLAUDE.md`. Open Claude Code and run `/spec` for your first feature.
+
+## Host Claude plugins & skills
+
+The devcontainer mounts your host `~/.claude/plugins` and `~/.claude/skills` read-only at `/home/node/.claude/{plugins,skills}`. That means:
+
+- Claude Code inside the container sees the same plugins/skills you installed on your host.
+- The container does not auto-install plugins for you — install on the host, they appear in the container.
+- Auth, projects, and history stay container-isolated (separate named volume).
+- Read-only: install/update plugins from your host, not inside the container.
+
+If you don't want this, remove the two `~/.claude/plugins` and `~/.claude/skills` lines from `.devcontainer/devcontainer.json` `mounts`.
 
 ## Files
 
@@ -60,9 +77,10 @@ Then inside the new repo's container: `gh auth login`, `railway login`, `bash sc
 |---|---|
 | `.devcontainer/Dockerfile` | Container image |
 | `.devcontainer/devcontainer.json` | VS Code dev container config |
-| `.devcontainer/init-firewall.sh` | Default-deny outbound firewall |
-| `.devcontainer/allowed-domains.txt` | Edit this to broaden network access |
-| `.devcontainer/post-create.sh` | Bootstraps color, hooks, deps |
+| `.devcontainer/init-firewall.sh` | Permissive firewall (ACCEPT all). See git history to restore default-deny. |
+| `.devcontainer/post-create.sh` | Bootstraps color, hooks, deps, template-sync prompt |
+| `scripts/template-sync.sh` | Interactive: pull template-owned updates into this repo |
+| `VERSION` / `LICENSE` | `0.1.0` / MIT |
 | `CLAUDE.md` | Root rules for Claude |
 | `claude/CLAUDE.node-webapp.md` | Node/TS stack rules |
 | `claude/CLAUDE.ios-webapi.md` | iOS + web API rules |
@@ -75,14 +93,14 @@ Then inside the new repo's container: `gh auth login`, `railway login`, `bash sc
 | `scripts/verify-deploy.sh` | Smoke check for deployed env |
 | `scripts/setup-hooks.sh` | Wire `core.hooksPath = hooks` |
 
-## Adjust network access
-
-Edit `.devcontainer/allowed-domains.txt`, then `sudo /usr/local/bin/init-firewall.sh`.
-
 ## Change the window color
 
 Delete `.vscode/settings.json` and rerun `/usr/local/bin/post-create.sh`. A new random hue will be written.
 
+## Network access
+
+Outbound is permissive by default — this template trusts the container and assumes you authenticate sensitive endpoints yourself. To restore a default-deny allowlist, see the previous version of `.devcontainer/init-firewall.sh` and `allowed-domains.txt` in git history.
+
 ## Use with `--dangerously-skip-permissions`
 
-Outbound is firewalled, so the blast radius of an over-eager `claude --dangerously-skip-permissions` is bounded. Still, never give it a long-lived prod token in env. Keep secrets in Railway/CI, not the container.
+The firewall is permissive in this template, so the blast radius is the network reach of whatever credentials are present in the container. Never give the container a long-lived prod token in env. Keep secrets in Railway/CI, not the container. If you want a tighter network sandbox, restore the default-deny firewall from git history.

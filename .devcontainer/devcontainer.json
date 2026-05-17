@@ -67,7 +67,9 @@
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
     "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
     "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh-host,type=bind,consistency=cached,readonly"
+    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh-host,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/.claude/plugins,target=/home/node/.claude/plugins,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/.claude/skills,target=/home/node/.claude/skills,type=bind,consistency=cached,readonly"
   ],
   "containerEnv": {
     "NODE_OPTIONS": "--max-old-space-size=4096",
