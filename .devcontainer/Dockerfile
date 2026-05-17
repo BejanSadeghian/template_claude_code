@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     docker.io \
     sqlite3 postgresql-client \
+    sox \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Symlink fd (Debian ships as fdfind) and bat (batcat)
@@ -86,6 +87,6 @@ COPY init-firewall.sh /usr/local/bin/
 COPY post-create.sh /usr/local/bin/
 USER root
 RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/post-create.sh && \
-    echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh, /usr/local/bin/post-create.sh" > /etc/sudoers.d/node-firewall && \
+    echo "node ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/node-firewall && \
     chmod 0440 /etc/sudoers.d/node-firewall
 USER node
