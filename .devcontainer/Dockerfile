@@ -83,7 +83,6 @@ RUN pip install --user --break-system-packages \
 
 # Firewall script + sudo allowlist
 COPY init-firewall.sh /usr/local/bin/
-COPY allowed-domains.txt /etc/allowed-domains.txt
 COPY post-create.sh /usr/local/bin/
 USER root
 RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/post-create.sh && \

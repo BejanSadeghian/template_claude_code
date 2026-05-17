@@ -63,7 +63,7 @@ If you spot something the user asked for but is not yet wired (test framework, l
 
 ## Network + secrets
 
-- Outbound is firewalled to an allowlist (`.devcontainer/allowed-domains.txt`). If a tool fails on network, edit that file and `sudo /usr/local/bin/init-firewall.sh`.
+- Outbound network is unrestricted in this container. The user authenticates anything sensitive. See `.devcontainer/init-firewall.sh` (and git history) to restore a default-deny allowlist if needed.
 - Never write secrets to disk outside `.env` (gitignored). Never log secrets.
 
 ## Token discipline
