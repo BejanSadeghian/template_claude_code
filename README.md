@@ -48,7 +48,7 @@ rm -rf .git && git init -b main
 gh repo create <new-name> --private --source=. --push
 ```
 
-Then inside the new repo's container: `gh auth login`, `railway login`, `bash scripts/setup-hooks.sh` (if `post-create.sh` didn't run it), and update project name references in `README.md` / `CLAUDE.md` before the first `/spec`.
+Then inside the new repo's container: `gh auth login` (and any other provider logins you need), then update project name references in `README.md` / `CLAUDE.md`, and the URL in `.template-source` if you forked the template. `post-create.sh` will have wired git hooks already.
 
 ## First-time setup
 
@@ -75,6 +75,22 @@ Implications:
 - Auth tokens inside host `settings.json` will be visible to the container. Inspect your host settings if that matters to you.
 - To opt out, remove the `~/.claude` bind in `.devcontainer/devcontainer.json` and the symlink step in `post-create.sh`.
 
+## Don't want the spec workflow?
+
+This template ships with an opinionated "spec-on-commit" workflow (`docs/specs/NNNN-*.md`, definition-of-done table, runbook scaffolding). If that's not your style, you can strip it out without affecting anything else:
+
+```bash
+rm -rf docs/specs docs/runbook
+# Then in CLAUDE.md, delete the sections: "Spec-on-commit (mandatory)",
+# "Definition of done", and "Runbook + services".
+```
+
+The devcontainer, host-plugin mount, template-sync, firewall config, sudo setup, and Claude Code auto-update will all still work.
+
+## Provider-coupled bits
+
+The deploy/runbook examples (`scripts/verify-deploy.sh`, `docs/runbook/RECREATE.md`, `docs/runbook/SERVICES.md`, `docs/runbook/INCIDENTS.md`) default to **Railway**. Each file has a header noting "default example — replace for your provider." The shape (sections, table columns, smoke check steps) is the part to keep; the Railway specifics are replaceable.
+
 ## Claude Code version
 
 Pinned at image build time to whatever was `latest` then. `post-create.sh --start` runs `npm update -g @anthropic-ai/claude-code` on every container start to keep it current. Pin a specific version via the `CLAUDE_CODE_VERSION` build arg in `devcontainer.json` if you want reproducibility.
@@ -88,6 +104,7 @@ Pinned at image build time to whatever was `latest` then. `post-create.sh --star
 | `.devcontainer/init-firewall.sh` | Permissive firewall (ACCEPT all). See git history to restore default-deny. |
 | `.devcontainer/post-create.sh` | Bootstraps color, hooks, deps, template-sync prompt |
 | `scripts/template-sync.sh` | Interactive: pull template-owned updates into this repo |
+| `.template-source` | Upstream template URL — edit when you fork |
 | `VERSION` / `LICENSE` | `0.1.0` / MIT |
 | `CLAUDE.md` | Root rules for Claude |
 | `claude/CLAUDE.node-webapp.md` | Node/TS stack rules |

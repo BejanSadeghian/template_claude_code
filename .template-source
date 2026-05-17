@@ -1,0 +1,5 @@
+# Upstream template repo this child was created from.
+# scripts/template-sync.sh reads the first non-comment URL line as TEMPLATE_URL.
+# If you fork this template, change the URL below in your fork to point at
+# whichever template you want child repos to sync from.
+https://github.com/BejanSadeghian/template_claude_code.git

@@ -1,5 +1,8 @@
 # Services
 
+> **Default rows below are a Railway-flavored example.** Replace with your own
+> services — the *table shape* is what matters: every external dep gets one row.
+
 Inventory of every external dependency. Update in the same PR that introduces a new service.
 
 | Service | Purpose | Env vars | Where managed | Cost tier |

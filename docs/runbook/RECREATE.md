@@ -1,5 +1,10 @@
 # Recreate the cloud env from scratch
 
+> **Default provider: Railway.** This file is a working Railway example —
+> rewrite for Fly, Render, Vercel, AWS, etc. as needed. Keep the headings
+> (Prereqs, Steps, Time budget, Update checklist) so `verify-deploy.sh`
+> and `INCIDENTS.md` stay readable across providers.
+
 Goal: if every cloud resource is destroyed, these steps rebuild a working production within 60 minutes.
 
 ## Prereqs (on the operator's laptop)

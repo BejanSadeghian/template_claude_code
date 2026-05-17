@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Verify a Railway deployment is healthy. Exit 0 = good.
+# Verify a deployment is healthy. Exit 0 = good.
 # Usage: scripts/verify-deploy.sh [production|staging]
+#
+# DEFAULT PROVIDER: Railway. The provider-specific block at the bottom is
+# Railway-flavored — replace it for Fly, Render, Vercel, AWS, etc. The
+# generic checks (1–3) work anywhere. See docs/runbook/RECREATE.md for
+# the provider examples that ship with this template.
 set -euo pipefail
 
 ENV="${1:-production}"
@@ -36,7 +41,7 @@ if [ -f playwright.config.ts ] || [ -f playwright.config.js ]; then
   fi
 fi
 
-# 4. Railway service status (if linked + token present)
+# 4. Provider-specific check (default: Railway — replace for your provider)
 if command -v railway >/dev/null 2>&1 && [ -n "${RAILWAY_TOKEN:-}" ]; then
   echo "--> railway status"
   STATUS=$(railway status --json 2>/dev/null | jq -r '.deployments[0].status' || echo "UNKNOWN")

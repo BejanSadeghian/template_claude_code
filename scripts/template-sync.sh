@@ -5,9 +5,18 @@
 set -euo pipefail
 
 TEMPLATE_REMOTE="${TEMPLATE_REMOTE:-template}"
-TEMPLATE_URL="${TEMPLATE_URL:-https://github.com/BejanSadeghian/template_claude_code.git}"
 TEMPLATE_BRANCH="${TEMPLATE_BRANCH:-main}"
 IGNORE_FILE=".template-sync-ignore"
+SOURCE_FILE=".template-source"
+
+# Resolve TEMPLATE_URL precedence:
+#   1. Env var TEMPLATE_URL (explicit override)
+#   2. First non-comment URL line in .template-source
+#   3. Hardcoded fallback (this repo's canonical upstream)
+if [ -z "${TEMPLATE_URL:-}" ] && [ -f "$SOURCE_FILE" ]; then
+    TEMPLATE_URL="$(grep -E '^[^#[:space:]]' "$SOURCE_FILE" | head -1 || true)"
+fi
+TEMPLATE_URL="${TEMPLATE_URL:-https://github.com/BejanSadeghian/template_claude_code.git}"
 
 # Template-owned paths. Anything outside this list is never touched.
 PATHS=(

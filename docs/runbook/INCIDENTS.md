@@ -1,5 +1,9 @@
 # Incident response
 
+> **Examples below assume Railway + Sentry + Stripe + Resend.** Replace
+> commands and rows for your provider/stack; keep the section structure
+> (First 5 minutes, Common failure modes, After resolution).
+
 Short. Use during fires; expand as you learn.
 
 ## First 5 minutes
