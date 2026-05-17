@@ -85,4 +85,9 @@ if [ -f .pre-commit-config.yaml ] && command -v pre-commit >/dev/null 2>&1; then
     pre-commit install || true
 fi
 
+# Step 6: prompt for template updates (TTY only; silent if up-to-date)
+if [ "$MODE" = "--start" ] && [ -f scripts/template-sync.sh ] && [ -d .git ]; then
+    bash scripts/template-sync.sh || true
+fi
+
 echo "post-create: done ($MODE)"
