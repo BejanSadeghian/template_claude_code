@@ -75,6 +75,21 @@ Implications:
 - Auth tokens inside host `settings.json` will be visible to the container. Inspect your host settings if that matters to you.
 - To opt out, remove the `~/.claude` bind in `.devcontainer/devcontainer.json` and the symlink step in `post-create.sh`.
 
+## Versioning
+
+The repo carries a `VERSION` file (semver) and matching `v*` git tags. The `pre-push` hook runs `scripts/bump-version.sh`, which:
+
+- Reads conventional commits since the last `v*` tag.
+- Bumps `MAJOR` on `BREAKING CHANGE` / `type!:`, `MINOR` on `feat:`, `PATCH` on `fix|chore|docs|refactor|test|perf|style|build|ci:`.
+- Commits `chore: release vX.Y.Z [skip version]` and tags `vX.Y.Z`.
+- `setup-hooks.sh` sets `push.followTags=true` so tags ship with the push.
+
+Opt-outs:
+- Add `[skip version]` to a commit subject/body — that commit doesn't count.
+- `SKIP_VERSION_BUMP=1 git push` — skip the hook for one push.
+- Delete `VERSION` — the hook becomes a no-op.
+- Force a bump manually: `bash scripts/bump-version.sh [patch|minor|major]`.
+
 ## Don't want the spec workflow?
 
 This template ships with an opinionated "spec-on-commit" workflow (`docs/specs/NNNN-*.md`, definition-of-done table, runbook scaffolding). If that's not your style, you can strip it out without affecting anything else:

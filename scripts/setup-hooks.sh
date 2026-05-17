@@ -7,5 +7,6 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
 
 git config core.hooksPath hooks
-chmod +x hooks/* 2>/dev/null || true
-echo "Git hooks path → ./hooks"
+git config push.followTags true
+chmod +x hooks/* scripts/*.sh 2>/dev/null || true
+echo "Git hooks path → ./hooks; push.followTags = true"

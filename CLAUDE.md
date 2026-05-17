@@ -43,8 +43,15 @@ If any step fails, fix it or open a follow-up spec — do not silently mark comp
 ## Commits
 
 - Commit directly to `main`. Branches + PRs are optional, only when isolation actually helps (long-running work, risky refactors, external collaborators).
-- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`.
+- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Use `feat!:` or include `BREAKING CHANGE:` in the body for major bumps.
 - Reference spec id in commit body: `Spec: 0042`.
+
+## Versioning (semver, auto)
+
+- The `VERSION` file and matching `v*` git tags are the source of truth.
+- `pre-push` hook auto-bumps based on conventional commits since the last tag (`feat!:`/BREAKING → major, `feat:` → minor, others → patch).
+- Add `[skip version]` to a commit message to exclude it from the bump, or `SKIP_VERSION_BUMP=1 git push` to skip the hook for one push.
+- Force a bump manually: `bash scripts/bump-version.sh [patch|minor|major]`.
 
 ## Testing defaults
 

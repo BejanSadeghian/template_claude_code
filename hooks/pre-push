@@ -2,6 +2,15 @@
 # Heavier gate before code leaves the laptop.
 set -e
 
+# Auto-bump VERSION based on conventional commits since the last v* tag.
+# Skipped if VERSION file is absent or SKIP_VERSION_BUMP=1 in the env.
+if [ -f VERSION ] && [ -f scripts/bump-version.sh ] && [ -z "${SKIP_VERSION_BUMP:-}" ]; then
+  bash scripts/bump-version.sh || {
+    echo "Version bump failed — push aborted." >&2
+    exit 1
+  }
+fi
+
 if [ -f package.json ]; then
   pnpm verify
 fi
