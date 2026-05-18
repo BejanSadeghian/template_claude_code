@@ -1,45 +1,72 @@
 # template_claude_code
 
-Modern Claude Code devcontainer + workflow scaffolding for VS Code.
+A VS Code devcontainer + workflow scaffold for shipping software with Claude Code as the primary builder. It treats Claude as a teammate: your job is ideation and review; Claude's job is to plan, implement, and verify against versioned specs.
 
-## What this gives you
+## Contents
 
-- **Devcontainer** (Node 22, gh, Railway CLI, ripgrep/fd, Python tooling, `sox` for Claude voice). Permissive outbound network — you auth what you need. Full passwordless `sudo` for the `node` user.
-- **Host Claude reuse**: your entire host `~/.claude` is bind-mounted read-only into the container, and plugins/skills/settings are symlinked into the writable Claude config dir on start — Claude Code in the container sees what you've installed without copying.
-- **Claude Code auto-update** on every container start (`npm update -g @anthropic-ai/claude-code`).
-- **Template sync on container start**: detects updates to template-owned files and prompts to accept/reject/defer interactively (`scripts/template-sync.sh`).
-- **Random per-clone VS Code banner color** so windows are visually distinct.
-- **Spec-on-commit workflow** for Claude: iterate freely, then a versioned spec under `docs/specs/NNNN-*.md` is created at commit time.
-- **Definition of done** scaffolding: lint, typecheck, unit, API, E2E, push verified, deploy verified.
-- **CI on GitHub Actions** + matching local git hooks (`hooks/`).
-- **Runbook** for Railway recreate-from-scratch + incidents.
-- **Per-stack guidance**: Node/TS webapp and iOS-app + web API.
+- [Purpose](#purpose)
+- [Features](#features)
+- [What this is not](#what-this-is-not)
+- [Getting started](#getting-started)
+  - [Start a new project from this template](#start-a-new-project-from-this-template)
+  - [Adopt this template in an existing repo](#adopt-this-template-in-an-existing-repo)
+  - [Pull the latest template changes into a project](#pull-the-latest-template-changes-into-a-project)
+- [Configuration](#configuration)
+- [Notes & caveats](#notes--caveats)
+- [Contributing](#contributing)
 
-## Quick start: new repo from this template
+## Purpose
 
-**One-time (template owner):** on GitHub → repo → Settings → check **Template repository**.
+Most "AI-assisted" starter kits leave the human in the loop for every step. This one inverts that: spec-on-commit, definition-of-done verification, async subagent dispatch, GitHub Project + git tag automation, and a devcontainer pre-wired so Claude Code is the first thing you see when the workspace opens. You stay in the conversation; the scaffolding handles the bookkeeping.
 
-**Each new project (preferred — uses GitHub's template flow):**
+## Features
 
-GitHub copies the template asynchronously, so do **not** use `--clone` on `gh repo create` — the clone races the copy and you'll hit `fatal: couldn't find remote ref refs/heads/main`. Split it into two steps:
+| Area | What you get |
+|---|---|
+| Devcontainer | Debian 13 + Node 24, gh, Railway CLI, ripgrep/fd, Python tooling, `sox` for voice. Permissive outbound network. Full passwordless sudo. |
+| Claude Code defaults | Starts in `bypassPermissions` mode. CLI alias for `--dangerously-skip-permissions`. Extension force-upgraded on every container start. Auto-open Claude panel on folder open. |
+| Host plugin reuse | Host plugins copied into a writable container dir on start (rsync). Skills/commands/agents/settings symlinked live. `refresh-plugins` alias re-syncs after a host install. |
+| Auth bootstrap | `gh auth login -s project` + `railway login` auto-prompt on container start if not already authed. Skip with `SKIP_AUTH_BOOTSTRAP=1`. |
+| Spec-on-commit | Versioned specs under `docs/specs/NNNN-*.md` with status, acceptance criteria, build log. Spec is created when you say commit/push/ship — not on every prompt. |
+| GitHub Project v2 sync | `pre-push` mirrors specs → GitHub issues + a "Specs" Project board. Local `gh` auth, no PAT secrets. Bootstrap once with `scripts/setup-github-project.sh`. |
+| Continuous async workflow | Orchestrator Claude dispatches developer + test-engineer subagents in isolated git worktrees as soon as specs are solid. You keep planning; results surface only on blockers or full-green. |
+| Auto semver | Conventional commits drive `feat!:`/`feat:`/`fix:` → major/minor/patch. `pre-push` bumps `VERSION` and tags `vX.Y.Z`. |
+| Template sync | Every container start checks for upstream template updates and prompts `accept/reject/defer/skip-this-version` per SHA. |
+| Cross-project shared memory | Optional private submodule at `claude/shared/` for rules that apply across all your repos. Claude routes "this would apply everywhere" feedback there. |
+| Stack guidance | `claude/CLAUDE.node-webapp.md`, `claude/CLAUDE.ios-webapi.md` for stack-specific rules. |
+| Runbook scaffolding | `docs/runbook/SERVICES.md`, `RECREATE.md`, `INCIDENTS.md` (Railway-flavored examples; replaceable). |
+| CI + hooks | Local git hooks and matching GitHub Actions for lint, typecheck, unit, API, E2E, deploy verify. |
+| Per-repo identity | Random VS Code title-bar color per clone so windows are visually distinct. |
+
+## What this is not
+
+- **Not a framework or stack.** No React, no FastAPI, no Rails. Bring your own.
+- **Not provider-locked.** Railway is the *default example* for the deploy/runbook bits; swap for any provider — the shape is what matters.
+- **Not a hands-off agent.** You write specs and decisions; Claude executes and verifies. The async workflow does not silently auto-merge — merges happen on your explicit "ship".
+- **Not for one-off scripts.** The spec/runbook/versioning weight pays off on projects you'll be back to next quarter.
+- **Not opinionated about test frameworks.** The "definition of done" table assumes pnpm by default, but every check is replaceable with your stack equivalent.
+
+## Getting started
+
+### Start a new project from this template
+
+GitHub's template flow copies asynchronously, so don't use `gh repo create --clone` — it races the copy. Split it:
 
 ```bash
 # 1. create the repo from the template (no --clone)
 gh repo create <new-name> --template BejanSadeghian/template_claude_code --private
 
 # 2. confirm GitHub finished copying (should print "main")
-gh api repos/<github_account>/<new-name>/branches --jq '.[].name'
+gh api repos/<your-gh-account>/<new-name>/branches --jq '.[].name'
 
-# 3. clone it locally
-cd ~/Dev   # or wherever you keep repos
-gh repo clone <github_account>/<new-name>
+# 3. clone and open in VS Code
+cd ~/Dev
+gh repo clone <your-gh-account>/<new-name>
 cd <new-name>
-code .     # then "Reopen in Container"
+code .   # then "Reopen in Container"
 ```
 
-If step 2 returns nothing, wait a couple seconds and retry — the copy is still in flight.
-
-**Fallback (no template flag — clone + reset history):**
+Fallback (no template flag):
 
 ```bash
 git clone https://github.com/BejanSadeghian/template_claude_code.git <new-name>
@@ -48,22 +75,31 @@ rm -rf .git && git init -b main
 gh repo create <new-name> --private --source=. --push
 ```
 
-Then inside the new repo's container: `gh auth login -s project` (the `project` scope is needed for the Specs Project v2 sync; add any other provider logins you need), then update project name references in `README.md` / `CLAUDE.md`, and the URL in `.template-source` if you forked the template. `post-create.sh` will have wired git hooks already.
+Once the container is up, on first start it will:
 
-## First-time setup
+1. Auto-prompt `gh auth login -s project` and `railway login` (skips if already authed).
+2. Auto-open the Claude Code panel.
+3. Run `template-sync.sh` to check for any upstream updates.
 
-1. **Host prereqs (one-time):** ensure `~/.claude` exists on your host (it does if you've ever run Claude Code). The container bind-mounts the whole directory; if it's missing, container start will fail.
-   ```bash
-   mkdir -p ~/.claude
-   ```
-2. Clone, open in VS Code, "Reopen in Container".
-3. On first start, `post-create.sh` picks a random title-bar color and writes `.vscode/settings.json` (it persists).
-4. Authenticate whatever you need yourself — e.g. `gh auth login -s project` (the `project` scope enables the Specs board sync), `railway login`. Nothing is auto-authed.
-5. Read `CLAUDE.md`. Open Claude Code and run `/spec` for your first feature.
+Then you tell Claude what you want to build. Read `CLAUDE.md` for the working rules.
 
-## Adopt template-sync in an existing (pre-sync) repo
+Optional: hook up the Specs Project v2 board so each spec mirrors to a GitHub issue + kanban card:
 
-If your repo was created from this template *before* `scripts/template-sync.sh` existed, bootstrap it once:
+```bash
+bash scripts/setup-github-project.sh
+bash scripts/sync-specs-to-github.sh   # backfill existing specs
+```
+
+Optional: link a shared rules repo (see [Cross-project shared memory](#cross-project-shared-memory)):
+
+```bash
+bash scripts/shared-claude.sh init https://github.com/<you>/claude-shared.git
+git push
+```
+
+### Adopt this template in an existing repo
+
+If your project doesn't have `scripts/template-sync.sh` yet, bootstrap it once:
 
 ```bash
 cd /path/to/your-existing-repo
@@ -82,111 +118,59 @@ git commit -m "chore: adopt template-sync"
 bash scripts/template-sync.sh   # diffs template-owned paths and prompts
 ```
 
-After this, every devcontainer start runs `template-sync.sh` and offers `accept/reject/defer/skip-this-version` for any new template changes.
+After that, every container start runs `template-sync.sh` and offers `accept/reject/defer/skip-this-version`.
 
-## Cross-project shared memory (optional)
+### Pull the latest template changes into a project
 
-Want the same Claude rules across multiple projects spawned from this template? Stand up a private `claude-shared` repo once, then link it as a submodule in each project that wants it:
+Two ways:
 
-```sh
-bash scripts/shared-claude.sh init https://github.com/<you>/claude-shared.git
-git push
-```
-
-After that, every container start runs `git submodule update --remote claude/shared`, so the shared rules are fresh. Claude's `CLAUDE.md` instructions already know to load `claude/shared/CLAUDE.md` if present.
-
-Helper subcommands:
-
-| Command | What it does |
+| Trigger | What happens |
 |---|---|
-| `bash scripts/shared-claude.sh update` | Pull latest into `claude/shared` |
-| `bash scripts/shared-claude.sh propose <slug>` | Draft a cross-project rule under `claude/shared/proposals/` |
-| `bash scripts/shared-claude.sh push [msg]` | Commit + push pending changes inside the submodule |
+| Rebuild / restart devcontainer | `post-create.sh --start` runs `template-sync.sh` automatically |
+| Manual | `bash scripts/template-sync.sh` from any terminal in the repo |
 
-Skip this entirely if you don't want it — nothing breaks. Memory stays project-local.
+Either pops an interactive prompt with a per-file diff and four choices: accept, reject (permanent for that SHA), defer (re-prompt next start), or skip-this-version.
 
-> **Forking this template?** The default `.gitmodules` points at `BejanSadeghian/claude-shared` (private). If you don't have access, the submodule init fails silently — no error, just an empty `claude/shared/` and the shared-rules section in CLAUDE.md is skipped. To use your own shared repo: `git rm claude/shared`, delete `.gitmodules`, commit, then `bash scripts/shared-claude.sh init <your-url>`.
+## Configuration
 
-## Host Claude config (plugins, skills, settings)
+| Knob | Where | Default |
+|---|---|---|
+| Container build args | `.devcontainer/devcontainer.json` → `build.args` | Node 24, Claude Code `latest`, git-delta, zsh-in-docker |
+| VS Code extensions | `.devcontainer/devcontainer.json` → `customizations.vscode.extensions` | anthropic.claude-code + sensible defaults |
+| Auto-open Claude Code on folder open | `.vscode/tasks.json` | on |
+| `claudeCode.initialPermissionMode` | `.devcontainer/devcontainer.json` settings | `bypassPermissions` |
+| Skip auth bootstrap | env `SKIP_AUTH_BOOTSTRAP=1` | off |
+| Skip version bump on push | env `SKIP_VERSION_BUMP=1` or `[skip version]` in commit msg | off |
+| Skip spec-sync on push | env `SKIP_SPEC_SYNC=1` | off |
+| Specs Project name | env `PROJECT_TITLE=<name>` for setup/sync scripts | `Specs` |
+| Cross-project shared submodule | `bash scripts/shared-claude.sh init <url>` | not initialized |
+| Spec workflow itself | delete `docs/specs/`, `docs/runbook/`, and matching CLAUDE.md sections to opt out | on |
 
-The devcontainer bind-mounts your entire host `~/.claude` read-only at `/home/node/.claude-host`. On every container start, `post-create.sh` symlinks these discovery paths from host into the writable Claude config dir (`/home/node/.claude`):
+## Notes & caveats
 
-- `plugins/`, `skills/`, `commands/`, `agents/`, `output-styles/`, `marketplaces/`
-- `settings.json`, `plugins.json`
+- **Forking this template?** The default `.gitmodules` points at `BejanSadeghian/claude-shared` (private). If you don't have access, submodule init fails silently — no error, just an empty `claude/shared/` and the shared-rules section in `CLAUDE.md` is skipped. To use your own shared repo: `git rm claude/shared`, delete `.gitmodules`, commit, then `bash scripts/shared-claude.sh init <your-url>`.
+- **Container cannot write to host.** Host `~/.claude` is mounted read-only. Plugins are *copied* into the container on start (not symlinked), so Claude Code can mutate marketplace cache without EROFS. Trade-off: install a new plugin on the host → run `refresh-plugins` in the container (or restart) to pick it up.
+- **`--dangerously-skip-permissions` is the default** inside the devcontainer (CLI alias + VS Code extension `bypassPermissions`). Acceptable because outbound network is permissive but the container is isolated from host. Never give the container a long-lived production token.
+- **Claude Code is auto-updated** on every container start (`npm update -g @anthropic-ai/claude-code`). Pin with the `CLAUDE_CODE_VERSION` build arg if you need reproducibility.
+- **Specs Project v2 sync runs locally** under your `gh auth`, not in GitHub Actions. Web edits or teammate pushes won't sync until you push from your machine. Fine for solo work.
+- **Async subagent dispatch requires `git worktree`.** The orchestrator uses isolated worktrees so parallel agents don't clobber each other. Subagents commit on their own branch but do not push or merge — that's manual.
+- **Provider-coupled examples.** `scripts/verify-deploy.sh`, `docs/runbook/*` are Railway-flavored. Replace per provider; keep the shape.
+- **Random title-bar color** is written to `.vscode/settings.json` on first start. Delete the file and rerun `post-create.sh` for a new hue.
 
-So Claude Code in the container sees the same plugins, skills, and settings (incl. which marketplaces/plugins are enabled) as your host. Sessions, history, projects, and auth state stay container-isolated in a named volume.
+## Contributing
 
-Implications:
-- Host is source of truth — install/update plugins on the host, restart the container.
-- Auth tokens inside host `settings.json` will be visible to the container. Inspect your host settings if that matters to you.
-- To opt out, remove the `~/.claude` bind in `.devcontainer/devcontainer.json` and the symlink step in `post-create.sh`.
+Contributors very welcome. The same workflow this template scaffolds is the one used to evolve the template itself:
 
-## Versioning
+1. Open in the devcontainer (or use your own setup with `gh` and `pnpm`).
+2. Iterate in conversation with Claude — no spec needed for exploration.
+3. When you're ready to land, say "commit"/"push" and Claude will create `docs/specs/NNNN-<slug>.md` describing the change, then commit and push it together.
+4. PRs are optional. If you're proposing something risky or want a review pass, open one against `main` with the spec id in the description.
 
-The repo carries a `VERSION` file (semver) and matching `v*` git tags. The `pre-push` hook runs `scripts/bump-version.sh`, which:
+Good places to start:
 
-- Reads conventional commits since the last `v*` tag.
-- Bumps `MAJOR` on `BREAKING CHANGE` / `type!:`, `MINOR` on `feat:`, `PATCH` on `fix|chore|docs|refactor|test|perf|style|build|ci:`.
-- Commits `chore: release vX.Y.Z [skip version]` and tags `vX.Y.Z`.
-- `setup-hooks.sh` sets `push.followTags=true` so tags ship with the push.
+- File an issue describing a friction point in the workflow.
+- Add a stack-specific guide under `claude/` (right now: Node webapp and iOS+webapi).
+- Tighten a runbook section against a provider you use.
+- Propose a cross-project rule by drafting a file under `claude/shared/proposals/` (requires access to the shared rules repo) or, if you can't see that, in an issue.
 
-Opt-outs:
-- Add `[skip version]` to a commit subject/body — that commit doesn't count.
-- `SKIP_VERSION_BUMP=1 git push` — skip the hook for one push.
-- Delete `VERSION` — the hook becomes a no-op.
-- Force a bump manually: `bash scripts/bump-version.sh [patch|minor|major]`.
-
-## Don't want the spec workflow?
-
-This template ships with an opinionated "spec-on-commit" workflow (`docs/specs/NNNN-*.md`, definition-of-done table, runbook scaffolding). If that's not your style, you can strip it out without affecting anything else:
-
-```bash
-rm -rf docs/specs docs/runbook
-# Then in CLAUDE.md, delete the sections: "Spec-on-commit (mandatory)",
-# "Definition of done", and "Runbook + services".
-```
-
-The devcontainer, host-plugin mount, template-sync, firewall config, sudo setup, and Claude Code auto-update will all still work.
-
-## Provider-coupled bits
-
-The deploy/runbook examples (`scripts/verify-deploy.sh`, `docs/runbook/RECREATE.md`, `docs/runbook/SERVICES.md`, `docs/runbook/INCIDENTS.md`) default to **Railway**. Each file has a header noting "default example — replace for your provider." The shape (sections, table columns, smoke check steps) is the part to keep; the Railway specifics are replaceable.
-
-## Claude Code version
-
-Pinned at image build time to whatever was `latest` then. `post-create.sh --start` runs `npm update -g @anthropic-ai/claude-code` on every container start to keep it current. Pin a specific version via the `CLAUDE_CODE_VERSION` build arg in `devcontainer.json` if you want reproducibility.
-
-## Files
-
-| Path | What |
-|---|---|
-| `.devcontainer/Dockerfile` | Container image |
-| `.devcontainer/devcontainer.json` | VS Code dev container config |
-| `.devcontainer/init-firewall.sh` | Permissive firewall (ACCEPT all). See git history to restore default-deny. |
-| `.devcontainer/post-create.sh` | Bootstraps color, hooks, deps, template-sync prompt |
-| `scripts/template-sync.sh` | Interactive: pull template-owned updates into this repo |
-| `.template-source` | Upstream template URL — edit when you fork |
-| `VERSION` / `LICENSE` | `0.1.0` / MIT |
-| `CLAUDE.md` | Root rules for Claude |
-| `claude/CLAUDE.node-webapp.md` | Node/TS stack rules |
-| `claude/CLAUDE.ios-webapi.md` | iOS + web API rules |
-| `claude/commands/` | Slash command playbooks |
-| `claude/settings.json` | Project-scoped Claude Code settings |
-| `docs/specs/` | Versioned specs (one per feature) |
-| `docs/runbook/` | Services + recreate + incidents |
-| `.github/workflows/` | CI, E2E, deploy verify |
-| `hooks/` | Git pre-commit + pre-push (wired via `core.hooksPath`) |
-| `scripts/verify-deploy.sh` | Smoke check for deployed env |
-| `scripts/setup-hooks.sh` | Wire `core.hooksPath = hooks` |
-
-## Change the window color
-
-Delete `.vscode/settings.json` and rerun `/usr/local/bin/post-create.sh`. A new random hue will be written.
-
-## Network access
-
-Outbound is permissive by default — this template trusts the container and assumes you authenticate sensitive endpoints yourself. To restore a default-deny allowlist, see the previous version of `.devcontainer/init-firewall.sh` and `allowed-domains.txt` in git history.
-
-## Use with `--dangerously-skip-permissions`
-
-The firewall is permissive in this template, so the blast radius is the network reach of whatever credentials are present in the container. Never give the container a long-lived prod token in env. Keep secrets in Railway/CI, not the container. If you want a tighter network sandbox, restore the default-deny firewall from git history.
+By participating you agree to the project's MIT license. Be kind in reviews — bullets, no preamble, no recap.
