@@ -94,17 +94,22 @@ HOST_CLAUDE="/home/node/.claude-host"
 LOCAL_CLAUDE="/home/node/.claude"
 if [ -d "$HOST_CLAUDE" ]; then
     mkdir -p "$LOCAL_CLAUDE"
-    for item in plugins skills settings.json plugins.json marketplaces commands agents output-styles; do
+    # `plugins` must be writable (Claude Code mutates marketplace cache on load).
+    # Everything else is read-only on consume, so symlinks are fine.
+    for item in skills settings.json plugins.json marketplaces commands agents output-styles; do
         SRC="$HOST_CLAUDE/$item"
         DST="$LOCAL_CLAUDE/$item"
         [ -e "$SRC" ] || continue
-        # If DST is already the right symlink, leave it.
         if [ -L "$DST" ] && [ "$(readlink "$DST")" = "$SRC" ]; then
             continue
         fi
         rm -rf "$DST"
         ln -s "$SRC" "$DST"
     done
+    # plugins/: copy host → container so it's writable. Re-syncable via `refresh-plugins`.
+    if [ -x "$WORKSPACE/scripts/refresh-host-plugins.sh" ]; then
+        bash "$WORKSPACE/scripts/refresh-host-plugins.sh" || true
+    fi
 fi
 
 # Step 7: keep Claude Code up to date (every container start)

@@ -12,7 +12,7 @@ Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emoj
 
 I'll prompt and iterate freely without specs. **Do not create a spec just because a prompt arrived.** Only create one when I ask to commit (or push, or ship) — that's the trigger.
 
-When I say commit / push / ship, just do it. No confirmation prompt, no recap of files. Run the spec workflow, stage, commit, push.
+When I say commit / push / ship, just do it. **Never** ask "want me to commit/push?", "should I hold so you can test?", or any variant. No confirmation. No "hold so you can test first" offers. No file-list recap. Run the spec workflow, stage, commit, push. Period.
 
 At commit time:
 

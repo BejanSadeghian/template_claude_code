@@ -6,7 +6,7 @@ ARG CLAUDE_CODE_VERSION=latest
 
 # Base dev tools + iOS-friendly utilities (the iOS app itself builds on macOS host)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    less git procps sudo fzf zsh man-db unzip gnupg2 gh \
+    less git procps sudo fzf zsh man-db unzip gnupg2 gh rsync \
     iptables ipset iproute2 dnsutils aggregate jq \
     nano vim curl wget ca-certificates \
     ripgrep fd-find bat \
@@ -62,10 +62,11 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a "source /usr/share/doc/fzf/examples/completion.zsh" \
     -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     -a "alias claude='claude --dangerously-skip-permissions'" \
+    -a "alias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'" \
     -x
 
-# Same alias for bash (devcontainer terminals occasionally use it)
-RUN echo "alias claude='claude --dangerously-skip-permissions'" >> /home/node/.bashrc
+# Same aliases for bash (devcontainer terminals occasionally use it)
+RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'\n" >> /home/node/.bashrc
 
 # Claude Code + globally useful CLIs
 RUN npm install -g \

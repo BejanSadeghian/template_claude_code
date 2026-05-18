@@ -29,6 +29,9 @@ PATHS=(
     scripts/bump-version.sh
     scripts/setup-github-project.sh
     scripts/sync-specs-to-github.sh
+    scripts/refresh-host-plugins.sh
+    scripts/auth-bootstrap.sh
+    .vscode/tasks.json
     hooks/pre-commit
     hooks/pre-push
     docs/specs/TEMPLATE.md
