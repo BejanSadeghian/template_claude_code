@@ -10,6 +10,7 @@ A VS Code devcontainer + workflow scaffold for shipping software with Claude Cod
 - [Getting started](#getting-started)
   - [Start a new project from this template](#start-a-new-project-from-this-template)
   - [Adopt this template in an existing repo](#adopt-this-template-in-an-existing-repo)
+  - [Use the template locally (no GitHub)](#use-the-template-locally-no-github)
   - [Pull the latest template changes into a project](#pull-the-latest-template-changes-into-a-project)
 - [Configuration](#configuration)
 - [Notes & caveats](#notes--caveats)
@@ -119,6 +120,37 @@ bash scripts/template-sync.sh   # diffs template-owned paths and prompts
 ```
 
 After that, every container start runs `template-sync.sh` and offers `accept/reject/defer/skip-this-version`.
+
+### Use the template locally (no GitHub)
+
+Don't have or don't want a GitHub account? You only need `git` and Docker. The GitHub-only features (Specs Project v2 sync, issue mirroring, PR flows) skip silently when `gh` isn't authed.
+
+```bash
+# 1. Clone the template tree, drop its history, start your own repo
+git clone https://github.com/BejanSadeghian/template_claude_code.git my-project
+cd my-project
+rm -rf .git
+git init -b main
+git add -A
+git commit -m "chore: bootstrap from template_claude_code"
+
+# 2. Optional: a local bare remote so `git push` has somewhere to go
+mkdir -p ~/git-remotes
+git init --bare ~/git-remotes/my-project.git
+git remote add origin ~/git-remotes/my-project.git
+git push -u origin main
+
+# 3. Open in VS Code, "Reopen in Container"
+code .
+```
+
+Inside the container, add `SKIP_AUTH_BOOTSTRAP=1` to `.devcontainer/devcontainer.json` → `containerEnv` so the gh/railway prompts don't fire.
+
+What you keep without GitHub: devcontainer build, Claude Code (CLI + extension), host plugin reuse, spec workflow, `pre-commit` + `pre-push` hooks, auto semver bumps + local `v*` tags, and `template-sync.sh` (only needs anonymous HTTPS to github.com to pull template updates).
+
+What you lose / replace: Specs Project board → use the spec file `Status:` field as your kanban; GitHub Issues mirroring → skip; `gh pr create` → not relevant solo. For the optional `claude/shared/` submodule, either delete it (`git rm claude/shared && git rm .gitmodules`) or point it at a local bare repo: `git submodule add -b main /absolute/path/to/claude-shared.git claude/shared`.
+
+Fully air-gapped? Pre-pull `node:24-trixie`, drop `.template-source` (or ignore fetch warnings), and ensure host plugins are installed before container start.
 
 ### Pull the latest template changes into a project
 
