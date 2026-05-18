@@ -159,18 +159,20 @@ Either pops an interactive prompt with a per-file diff and four choices: accept,
 
 ## Contributing
 
-Contributors very welcome. The same workflow this template scaffolds is the one used to evolve the template itself:
+Contributors very welcome. Process for external changes:
 
-1. Open in the devcontainer (or use your own setup with `gh` and `pnpm`).
-2. Iterate in conversation with Claude — no spec needed for exploration.
-3. When you're ready to land, say "commit"/"push" and Claude will create `docs/specs/NNNN-<slug>.md` describing the change, then commit and push it together.
-4. PRs are optional. If you're proposing something risky or want a review pass, open one against `main` with the spec id in the description.
+1. **Open an issue first** describing the problem or proposed change. Get a thumbs-up before doing heavy work.
+2. **Fork** the repo and create a feature branch from `main`.
+3. **Write a spec.** Every contribution — feature, fix, or doc change beyond a typo — needs a file at `docs/specs/NNNN-<slug>.md` based on `docs/specs/TEMPLATE.md`. Fill in the goal, scope, acceptance criteria, and risks. Using Claude Code to draft it is fine; using a plain editor is fine. The spec is what we review against.
+4. **Implement.** Use Claude Code if you want — you'll find the spec/dod/runbook workflow lighter that way — but it's not required.
+5. **Open a pull request** against `main`. PRs are **required** for external contributors (the maintainer commits direct to `main`; you don't). The PR description should reference the issue and the spec id (e.g. `Spec: 0042`). Make sure the spec's acceptance checkboxes are ticked and the Build log is finalized before requesting review.
+6. **Pass the local hooks** (`pre-commit` + `pre-push`) before pushing. CI re-runs them.
 
 Good places to start:
 
 - File an issue describing a friction point in the workflow.
 - Add a stack-specific guide under `claude/` (right now: Node webapp and iOS+webapi).
 - Tighten a runbook section against a provider you use.
-- Propose a cross-project rule by drafting a file under `claude/shared/proposals/` (requires access to the shared rules repo) or, if you can't see that, in an issue.
+- Propose a cross-project rule via an issue (the shared rules repo is private; the issue is the right surface).
 
 By participating you agree to the project's MIT license. Be kind in reviews — bullets, no preamble, no recap.
