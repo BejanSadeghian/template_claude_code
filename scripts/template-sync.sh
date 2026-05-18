@@ -31,6 +31,7 @@ PATHS=(
     scripts/sync-specs-to-github.sh
     scripts/refresh-host-plugins.sh
     scripts/auth-bootstrap.sh
+    scripts/shared-claude.sh
     .vscode/tasks.json
     hooks/pre-commit
     hooks/pre-push

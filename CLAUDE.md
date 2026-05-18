@@ -27,6 +27,22 @@ Trivial commits (typo fixes, formatting, comment tweaks, dependency bumps) skip 
 
 On push, `hooks/pre-push` mirrors each spec to a GitHub issue + the "Specs" Project v2 board (`scripts/sync-specs-to-github.sh`). The spec file's `Status:` line is the source of truth; `done`/`abandoned` close the matching issue. Bootstrap once per repo with `bash scripts/setup-github-project.sh` (requires `gh auth refresh -s project`).
 
+## Cross-project shared memory (optional submodule)
+
+If `claude/shared/CLAUDE.md` exists (i.e. a downstream repo has run `bash scripts/shared-claude.sh init <url>`), **also** read it. Those are cross-project rules; project-level rules in this file take precedence on direct conflict.
+
+When you decide to save a feedback/preference memory:
+- **Project-specific** (relevant only here) → local `memory/` per the auto-memory rules.
+- **Cross-project** (a rule that would apply in any of my repos) → draft a file under `claude/shared/proposals/<YYYY-MM-DD>-<slug>.md` and commit + push inside the submodule:
+  ```sh
+  git -C claude/shared add proposals/<file>.md
+  git -C claude/shared commit -m "propose: <slug>"
+  git -C claude/shared push
+  ```
+  Use your best judgment on which bucket. Default to project-specific if unsure.
+
+If `claude/shared/` does **not** exist, the shared mechanism is disabled — keep everything in local `memory/`. Do not prompt me to set it up.
+
 ## Continuous async workflow
 
 I want a continuous async workflow. My job is ideation and planning — I will describe features and refine specs in conversation with you. Your job is to dispatch agents to work against specs the moment they're solid enough to act on, without interrupting me.

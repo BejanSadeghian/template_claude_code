@@ -84,6 +84,27 @@ bash scripts/template-sync.sh   # diffs template-owned paths and prompts
 
 After this, every devcontainer start runs `template-sync.sh` and offers `accept/reject/defer/skip-this-version` for any new template changes.
 
+## Cross-project shared memory (optional)
+
+Want the same Claude rules across multiple projects spawned from this template? Stand up a private `claude-shared` repo once, then link it as a submodule in each project that wants it:
+
+```sh
+bash scripts/shared-claude.sh init https://github.com/<you>/claude-shared.git
+git push
+```
+
+After that, every container start runs `git submodule update --remote claude/shared`, so the shared rules are fresh. Claude's `CLAUDE.md` instructions already know to load `claude/shared/CLAUDE.md` if present.
+
+Helper subcommands:
+
+| Command | What it does |
+|---|---|
+| `bash scripts/shared-claude.sh update` | Pull latest into `claude/shared` |
+| `bash scripts/shared-claude.sh propose <slug>` | Draft a cross-project rule under `claude/shared/proposals/` |
+| `bash scripts/shared-claude.sh push [msg]` | Commit + push pending changes inside the submodule |
+
+Skip this entirely if you don't want it — nothing breaks. Memory stays project-local.
+
 ## Host Claude config (plugins, skills, settings)
 
 The devcontainer bind-mounts your entire host `~/.claude` read-only at `/home/node/.claude-host`. On every container start, `post-create.sh` symlinks these discovery paths from host into the writable Claude config dir (`/home/node/.claude`):

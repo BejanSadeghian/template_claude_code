@@ -112,6 +112,12 @@ if [ -d "$HOST_CLAUDE" ]; then
     fi
 fi
 
+# Step 6c: refresh any submodules (notably claude/shared if the user opted in).
+# No-op if .gitmodules is absent.
+if [ -f .gitmodules ]; then
+    git submodule update --init --recursive --remote 2>/dev/null || true
+fi
+
 # Step 7: keep Claude Code up to date (every container start)
 if command -v npm >/dev/null 2>&1; then
     npm update -g @anthropic-ai/claude-code >/dev/null 2>&1 || true
