@@ -48,7 +48,7 @@ rm -rf .git && git init -b main
 gh repo create <new-name> --private --source=. --push
 ```
 
-Then inside the new repo's container: `gh auth login` (and any other provider logins you need), then update project name references in `README.md` / `CLAUDE.md`, and the URL in `.template-source` if you forked the template. `post-create.sh` will have wired git hooks already.
+Then inside the new repo's container: `gh auth login -s project` (the `project` scope is needed for the Specs Project v2 sync; add any other provider logins you need), then update project name references in `README.md` / `CLAUDE.md`, and the URL in `.template-source` if you forked the template. `post-create.sh` will have wired git hooks already.
 
 ## First-time setup
 
@@ -58,7 +58,7 @@ Then inside the new repo's container: `gh auth login` (and any other provider lo
    ```
 2. Clone, open in VS Code, "Reopen in Container".
 3. On first start, `post-create.sh` picks a random title-bar color and writes `.vscode/settings.json` (it persists).
-4. Authenticate whatever you need yourself — e.g. `gh auth login`, `railway login`. Nothing is auto-authed.
+4. Authenticate whatever you need yourself — e.g. `gh auth login -s project` (the `project` scope enables the Specs board sync), `railway login`. Nothing is auto-authed.
 5. Read `CLAUDE.md`. Open Claude Code and run `/spec` for your first feature.
 
 ## Adopt template-sync in an existing (pre-sync) repo

@@ -13,7 +13,7 @@ need gh
 need jq
 
 if ! gh auth status >/dev/null 2>&1; then
-  err "gh is not authenticated. Run: gh auth login"
+  err "gh is not authenticated. Run: gh auth login -s project"
   exit 1
 fi
 

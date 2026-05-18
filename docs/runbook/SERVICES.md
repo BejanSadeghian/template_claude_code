@@ -25,7 +25,7 @@ Inventory of every external dependency. Update in the same PR that introduces a 
 ## One-time setup: GitHub Specs project
 
 ```sh
-gh auth refresh -s project        # grant Projects v2 scope to your existing login
+gh auth login -s project          # fresh login w/ project scope (or: gh auth refresh -s project)
 bash scripts/setup-github-project.sh   # creates label, project, Status field; idempotent
 bash scripts/sync-specs-to-github.sh   # backfill issues + board for existing specs
 ```

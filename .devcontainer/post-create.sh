@@ -62,7 +62,7 @@ fi
 # Step 3: gh auth status (best-effort — don't fail container on this)
 if command -v gh >/dev/null 2>&1; then
     if ! gh auth status >/dev/null 2>&1; then
-        echo "[hint] Run 'gh auth login' in this terminal to enable PR / deploy verification."
+        echo "[hint] Run 'gh auth login -s project' in this terminal to enable PR / deploy verification and the Specs board sync."
     fi
 fi
 
