@@ -27,6 +27,23 @@ Trivial commits (typo fixes, formatting, comment tweaks, dependency bumps) skip 
 
 On push, `hooks/pre-push` mirrors each spec to a GitHub issue + the "Specs" Project v2 board (`scripts/sync-specs-to-github.sh`). The spec file's `Status:` line is the source of truth; `done`/`abandoned` close the matching issue. Bootstrap once per repo with `bash scripts/setup-github-project.sh` (requires `gh auth refresh -s project`).
 
+## Continuous async workflow
+
+I want a continuous async workflow. My job is ideation and planning — I will describe features and refine specs in conversation with you. Your job is to dispatch agents to work against specs the moment they're solid enough to act on, without interrupting me.
+
+Rules:
+- When a spec is clear enough to build against, dispatch developer + test-engineer immediately and background them.
+- Don't wait for me to say "go build it" — use your judgment on spec readiness.
+- Confirm dispatch in one line ("dispatched developer + test-engineer on [feature]") then stay in planning mode with me.
+- Surface agent results as a brief interruption only when they need a decision from me, or when a feature is fully green.
+- If agents hit a blocker, flag it quickly and ask what I want to do, then get back to planning.
+
+Mechanics (non-negotiable so parallel agents don't clobber each other):
+- Always dispatch with `isolation: "worktree"` so each spec gets an isolated checkout + branch.
+- Never dispatch two specs that touch the same files concurrently. If a conflict is unavoidable, queue the second and tell me in one line.
+- Subagents commit on their own branch but do **not** push or merge. Merging to `main` only happens when I say ship.
+- Rebuild your dispatch state each turn from `git worktree list` + spec `Status:` lines, not memory.
+
 ## Definition of done
 
 A task is **not done** until all of these pass — verify each, do not assume:
