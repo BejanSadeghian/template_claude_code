@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ripgrep fd-find bat \
     python3 python3-pip python3-venv pipx \
     build-essential \
-    docker.io \
     sqlite3 postgresql-client \
     sox \
     && apt-get clean && rm -rf /var/lib/apt/lists/*

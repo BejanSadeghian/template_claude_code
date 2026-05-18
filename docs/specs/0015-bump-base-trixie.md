@@ -32,6 +32,7 @@ Bump devcontainer base image to `node:24-trixie` (Debian 13) so the bundled Pyth
 ## Build log
 
 - 2026-05-17 — Switched base to `node:24-trixie`. No package list changes needed.
+- 2026-05-17 — Build failure reported by user: `docker-outside-of-docker` feature defaults to `moby: true`, but `moby-cli` was removed from trixie. Fixed by passing `"moby": false` to the feature (installs upstream Docker CE instead) and dropping the now-redundant `docker.io` apt package from the Dockerfile.
 
 ## Follow-ups
 
