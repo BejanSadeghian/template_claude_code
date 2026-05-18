@@ -105,6 +105,8 @@ Helper subcommands:
 
 Skip this entirely if you don't want it — nothing breaks. Memory stays project-local.
 
+> **Forking this template?** The default `.gitmodules` points at `BejanSadeghian/claude-shared` (private). If you don't have access, the submodule init fails silently — no error, just an empty `claude/shared/` and the shared-rules section in CLAUDE.md is skipped. To use your own shared repo: `git rm claude/shared`, delete `.gitmodules`, commit, then `bash scripts/shared-claude.sh init <your-url>`.
+
 ## Host Claude config (plugins, skills, settings)
 
 The devcontainer bind-mounts your entire host `~/.claude` read-only at `/home/node/.claude-host`. On every container start, `post-create.sh` symlinks these discovery paths from host into the writable Claude config dir (`/home/node/.claude`):
