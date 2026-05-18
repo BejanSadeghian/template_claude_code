@@ -61,6 +61,29 @@ Then inside the new repo's container: `gh auth login` (and any other provider lo
 4. Authenticate whatever you need yourself — e.g. `gh auth login`, `railway login`. Nothing is auto-authed.
 5. Read `CLAUDE.md`. Open Claude Code and run `/spec` for your first feature.
 
+## Adopt template-sync in an existing (pre-sync) repo
+
+If your repo was created from this template *before* `scripts/template-sync.sh` existed, bootstrap it once:
+
+```bash
+cd /path/to/your-existing-repo
+
+TEMPLATE_URL=https://github.com/BejanSadeghian/template_claude_code.git
+git remote add template "$TEMPLATE_URL"
+git fetch template main
+
+git checkout template/main -- scripts/template-sync.sh
+echo "$TEMPLATE_URL" > .template-source
+chmod +x scripts/template-sync.sh
+
+git add scripts/template-sync.sh .template-source
+git commit -m "chore: adopt template-sync"
+
+bash scripts/template-sync.sh   # diffs template-owned paths and prompts
+```
+
+After this, every devcontainer start runs `template-sync.sh` and offers `accept/reject/defer/skip-this-version` for any new template changes.
+
 ## Host Claude config (plugins, skills, settings)
 
 The devcontainer bind-mounts your entire host `~/.claude` read-only at `/home/node/.claude-host`. On every container start, `post-create.sh` symlinks these discovery paths from host into the writable Claude config dir (`/home/node/.claude`):

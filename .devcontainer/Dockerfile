@@ -61,7 +61,11 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a "source /usr/share/doc/fzf/examples/key-bindings.zsh" \
     -a "source /usr/share/doc/fzf/examples/completion.zsh" \
     -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
+    -a "alias claude='claude --dangerously-skip-permissions'" \
     -x
+
+# Same alias for bash (devcontainer terminals occasionally use it)
+RUN echo "alias claude='claude --dangerously-skip-permissions'" >> /home/node/.bashrc
 
 # Claude Code + globally useful CLIs
 RUN npm install -g \

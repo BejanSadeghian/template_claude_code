@@ -45,3 +45,4 @@ ios/DerivedData/
 ios/Pods/
 *.xcuserstate
 xcuserdata/
+memory/

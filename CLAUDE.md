@@ -12,6 +12,8 @@ Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emoj
 
 I'll prompt and iterate freely without specs. **Do not create a spec just because a prompt arrived.** Only create one when I ask to commit (or push, or ship) — that's the trigger.
 
+When I say commit / push / ship, just do it. No confirmation prompt, no recap of files. Run the spec workflow, stage, commit, push.
+
 At commit time:
 
 1. Create or update a spec at `docs/specs/NNNN-<slug>.md` using `docs/specs/TEMPLATE.md`.
@@ -22,6 +24,8 @@ At commit time:
 4. If I follow up later with prompts that extend the same area, append them to the existing spec's "Build log" before the next commit.
 
 Trivial commits (typo fixes, formatting, comment tweaks, dependency bumps) skip the spec.
+
+On push, `hooks/pre-push` mirrors each spec to a GitHub issue + the "Specs" Project v2 board (`scripts/sync-specs-to-github.sh`). The spec file's `Status:` line is the source of truth; `done`/`abandoned` close the matching issue. Bootstrap once per repo with `bash scripts/setup-github-project.sh` (requires `gh auth refresh -s project`).
 
 ## Definition of done
 

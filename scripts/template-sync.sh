@@ -26,6 +26,11 @@ PATHS=(
     scripts/template-sync.sh
     scripts/setup-hooks.sh
     scripts/verify-deploy.sh
+    scripts/bump-version.sh
+    scripts/setup-github-project.sh
+    scripts/sync-specs-to-github.sh
+    hooks/pre-commit
+    hooks/pre-push
     docs/specs/TEMPLATE.md
     docs/runbook
     CLAUDE.md
