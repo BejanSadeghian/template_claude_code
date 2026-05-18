@@ -53,6 +53,7 @@
         },
         "claudeCode.allowDangerouslySkipPermissions": true,
         "claudeCode.initialPermissionMode": "bypassPermissions",
+        "task.allowAutomaticTasks": "on",
         "git.autofetch": true,
         "git.confirmSync": false,
         "github.copilot.enable": { "*": false },

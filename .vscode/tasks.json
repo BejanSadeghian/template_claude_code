@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "auth-bootstrap",
+      "detail": "gh + railway login prompts (skips if already authed). Skip entirely with SKIP_AUTH_BOOTSTRAP=1.",
+      "type": "shell",
+      "command": "bash scripts/auth-bootstrap.sh",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "open-claude-code",
+      "detail": "Best-effort: open the Claude Code panel on folder open. Falls back silently if the command id differs.",
+      "type": "shell",
+      "command": "code --command claudeCode.start || code --command claudeCode.newConversation || code --command workbench.view.extension.claude-code || true",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "close": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ]
+}
