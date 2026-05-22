@@ -8,13 +8,17 @@ set -u
 echo "── auth bootstrap ───────────────────────────────────"
 
 # gh: needs `project` scope for Specs board sync.
+# Use the web (browser) device flow — no username/password, no token paste, no SSH key prompts.
 if command -v gh >/dev/null 2>&1; then
   if ! gh auth status >/dev/null 2>&1; then
-    echo "GitHub: not logged in. Launching device flow…"
-    gh auth login -s project -w || echo "  (gh login skipped or failed — re-run later)"
+    echo "GitHub: not logged in. Launching browser device flow…"
+    echo "  → you'll see a one-time code and a github.com URL — open it in your host browser."
+    gh auth login --hostname github.com --git-protocol https --web --scopes project \
+      || echo "  (gh login skipped or failed — re-run later with: gh auth login -w -s project)"
   elif ! gh auth status 2>&1 | grep -qi 'project'; then
-    echo "GitHub: logged in but missing 'project' scope. Refreshing…"
-    gh auth refresh -s project || echo "  (refresh skipped or failed)"
+    echo "GitHub: logged in but missing 'project' scope. Refreshing via browser…"
+    gh auth refresh --hostname github.com --scopes project \
+      || echo "  (refresh skipped or failed)"
   else
     echo "GitHub: ✓ logged in with project scope"
   fi

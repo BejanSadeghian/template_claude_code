@@ -51,21 +51,14 @@ Most "AI-assisted" starter kits leave the human in the loop for every step. This
 
 ### Start a new project from this template
 
-GitHub's template flow copies asynchronously, so don't use `gh repo create --clone` — it races the copy. Split it:
-
 ```bash
-# 1. create the repo from the template (no --clone)
-gh repo create <new-name> --template BejanSadeghian/template_claude_code --private
-
-# 2. confirm GitHub finished copying (should print "main")
-gh api repos/<your-gh-account>/<new-name>/branches --jq '.[].name'
-
-# 3. clone and open in VS Code
-cd ~/Dev
-gh repo clone <your-gh-account>/<new-name>
+cd ~/Dev   # or wherever you keep repos
+gh repo create <new-name> --template BejanSadeghian/template_claude_code --private --clone
 cd <new-name>
-code .   # then "Reopen in Container"
+code .     # then "Reopen in Container"
 ```
+
+If `--clone` races the template copy (rare) and you see `couldn't find remote ref refs/heads/main`, wait a few seconds and `gh repo clone <your-gh-account>/<new-name>` manually.
 
 Fallback (no template flag):
 
