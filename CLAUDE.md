@@ -10,9 +10,10 @@ Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emoj
 
 ## Remote-first, auto-push (mandatory)
 
-Keep the remote up to date automatically. There is no keyword trigger — **never** wait for me to say commit / push / ship, and **never** ask "want me to commit/push?" or "should I hold so you can test?".
+Keep the remote up to date automatically. There is no keyword trigger — **never** wait for me to say commit / push / ship / deploy, and **never** ask "want me to commit/push?", "want a PR?", "should I deploy?", or "should I hold so you can test?". Just do it. The only time you ask is a genuine fork-in-the-road decision that's mine to make — never a permission-to-proceed gate.
 
-- After any meaningful, working change, stage it, commit with a conventional message, and `git push`. No confirmation, no file-list recap.
+- After any meaningful, working change, stage it, commit with a conventional message, `git push`, and deploy if a deploy path is configured. No confirmation, no file-list recap.
+- Open a PR yourself when branching is warranted; don't ask first.
 - Commit at logical checkpoints rather than batching unrelated work into one blob.
 - The remote is the source of truth. If local and remote diverge, reconcile (pull/rebase) before pushing rather than forcing.
 - Don't push obviously broken work — run the relevant checks first (see Definition of done). If something fails, fix it or say so; don't sit on green work waiting for permission.
@@ -43,7 +44,7 @@ Rules:
 - When a task is clear enough to build, dispatch developer + test-engineer immediately and background them.
 - Don't wait for me to say "go build it" — use your judgment on readiness.
 - Confirm dispatch in one line ("dispatched developer + test-engineer on [feature]") then stay in planning mode with me.
-- Surface agent results as a brief interruption only when they need a decision from me, or when a feature is fully green and pushed.
+- Surface agent results as a brief interruption only when they need a genuine decision from me, or when a feature is fully green, pushed, and deployed.
 - If agents hit a blocker, flag it quickly and ask what I want to do, then get back to planning.
 
 Mechanics (non-negotiable so parallel agents don't clobber each other):
