@@ -19,12 +19,6 @@ if [ -f .pre-commit-config.yaml ]; then
   pre-commit run --hook-stage push
 fi
 
-# Mirror docs/specs/* to GitHub issues + Specs project.
-# No-op if gh missing/unauthed/no project scope. Skip with SKIP_SPEC_SYNC=1.
-if [ -f scripts/sync-specs-to-github.sh ] && [ -z "${SKIP_SPEC_SYNC:-}" ]; then
-  bash scripts/sync-specs-to-github.sh || echo "spec-sync failed (non-fatal)" >&2
-fi
-
 # iOS check (host only — CI handles this on macos-latest)
 if [ -f scripts/ios-test.sh ] && [ "$(uname -s)" = "Darwin" ]; then
   scripts/ios-test.sh --quick || {

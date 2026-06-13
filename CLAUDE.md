@@ -5,27 +5,20 @@ Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emoj
 ## Stack-specific rules
 - Node/TS webapp → also read `claude/CLAUDE.node-webapp.md`
 - iOS app + web API → also read `claude/CLAUDE.ios-webapi.md`
-- Slash command playbooks live in `claude/commands/` — `/spec`, `/ship`, `/verify`.
+- `/verify` playbook lives in `claude/commands/`.
 - If unsure which stack, ask one question, then proceed.
 
-## Spec-on-commit (mandatory)
+## Remote-first, auto-push (mandatory)
 
-I'll prompt and iterate freely without specs. **Do not create a spec just because a prompt arrived.** Only create one when I ask to commit (or push, or ship) — that's the trigger.
+Keep the remote up to date automatically. There is no keyword trigger — **never** wait for me to say commit / push / ship / deploy, and **never** ask "want me to commit/push?", "want a PR?", "should I deploy?", or "should I hold so you can test?". Just do it. The only time you ask is a genuine fork-in-the-road decision that's mine to make — never a permission-to-proceed gate.
 
-When I say commit / push / ship, just do it. **Never** ask "want me to commit/push?", "should I hold so you can test?", or any variant. No confirmation. No "hold so you can test first" offers. No file-list recap. Run the spec workflow, stage, commit, push. Period.
+- After any meaningful, working change, stage it, commit with a conventional message, `git push` to `main`, and deploy if a deploy path is configured. No confirmation, no file-list recap.
+- No PRs. Commit straight to `main` — don't open pull requests, don't branch, don't ask about either.
+- Commit at logical checkpoints rather than batching unrelated work into one blob.
+- The remote is the source of truth. If local and remote diverge, reconcile (pull/rebase) before pushing rather than forcing.
+- Don't push obviously broken work — run the relevant checks first (see Definition of done). If something fails, fix it or say so; don't sit on green work waiting for permission.
 
-At commit time:
-
-1. Create or update a spec at `docs/specs/NNNN-<slug>.md` using `docs/specs/TEMPLATE.md`.
-   - `NNNN` = next zero-padded integer. Run `ls docs/specs | grep -E '^[0-9]{4}-' | tail -1` to find the last one.
-   - Slug = kebab-case, ≤ 5 words.
-2. The spec records: the consolidated prompts that drove the work (paste verbatim, in order), restated goal, scope, acceptance criteria (testable), out-of-scope notes, risks, what was actually built.
-3. Stage the spec with the work and commit them together. For large diffs, optionally commit the spec first as its own commit, then the implementation.
-4. If I follow up later with prompts that extend the same area, append them to the existing spec's "Build log" before the next commit.
-
-Trivial commits (typo fixes, formatting, comment tweaks, dependency bumps) skip the spec.
-
-On push, `hooks/pre-push` mirrors each spec to a GitHub issue + the "Specs" Project v2 board (`scripts/sync-specs-to-github.sh`). The spec file's `Status:` line is the source of truth; `done`/`abandoned` close the matching issue. Bootstrap once per repo with `bash scripts/setup-github-project.sh` (requires `gh auth refresh -s project`).
+Trivial-only sessions (a single typo/format tweak) can still be one commit — just push it.
 
 ## Cross-project shared memory (optional submodule)
 
@@ -45,20 +38,19 @@ If `claude/shared/` does **not** exist, the shared mechanism is disabled — kee
 
 ## Continuous async workflow
 
-I want a continuous async workflow. My job is ideation and planning — I will describe features and refine specs in conversation with you. Your job is to dispatch agents to work against specs the moment they're solid enough to act on, without interrupting me.
+I want a continuous async workflow. My job is ideation and planning — I will describe and refine features in conversation with you. Your job is to dispatch agents to build them the moment the idea is solid enough to act on, without interrupting me.
 
 Rules:
-- When a spec is clear enough to build against, dispatch developer + test-engineer immediately and background them.
-- Don't wait for me to say "go build it" — use your judgment on spec readiness.
+- When a task is clear enough to build, dispatch developer + test-engineer immediately and background them.
+- Don't wait for me to say "go build it" — use your judgment on readiness.
 - Confirm dispatch in one line ("dispatched developer + test-engineer on [feature]") then stay in planning mode with me.
-- Surface agent results as a brief interruption only when they need a decision from me, or when a feature is fully green.
+- Surface agent results as a brief interruption only when they need a genuine decision from me, or when a feature is fully green, pushed, and deployed.
 - If agents hit a blocker, flag it quickly and ask what I want to do, then get back to planning.
 
 Mechanics (non-negotiable so parallel agents don't clobber each other):
-- Always dispatch with `isolation: "worktree"` so each spec gets an isolated checkout + branch.
-- Never dispatch two specs that touch the same files concurrently. If a conflict is unavoidable, queue the second and tell me in one line.
-- Subagents commit on their own branch but do **not** push or merge. Merging to `main` only happens when I say ship.
-- Rebuild your dispatch state each turn from `git worktree list` + spec `Status:` lines, not memory.
+- Always dispatch with `isolation: "worktree"` so each task gets an isolated checkout + branch.
+- Never dispatch two tasks that touch the same files concurrently. If a conflict is unavoidable, queue the second and tell me in one line.
+- Rebuild your dispatch state each turn from `git worktree list`, not memory.
 
 ## Definition of done
 
@@ -71,17 +63,15 @@ A task is **not done** until all of these pass — verify each, do not assume:
 | Integration / API tests | `pnpm test:api` |
 | UI / E2E tests (if webapp) | `pnpm test:e2e` |
 | Local hooks | `pre-commit` and `pre-push` ran clean |
-| Pushed | `git push` exit 0; `gh api repos/:owner/:repo/commits/<sha>` returns the commit |
-| Deploy succeeded | `scripts/verify-deploy.sh` exit 0 (smoke + health endpoint) |
-| Spec updated | Acceptance checkboxes ticked, Build log finalized |
+| Pushed | `git push` exit 0; the commit is visible on the remote |
+| Deploy succeeded (if configured) | `scripts/verify-deploy.sh` exit 0 (smoke + health endpoint) |
 
-If any step fails, fix it or open a follow-up spec — do not silently mark complete.
+If any step fails, fix it — do not silently mark complete.
 
 ## Commits
 
-- Commit directly to `main`. Branches + PRs are optional, only when isolation actually helps (long-running work, risky refactors, external collaborators).
+- Always commit and push directly to `main`. No branches, no PRs.
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Use `feat!:` or include `BREAKING CHANGE:` in the body for major bumps.
-- Reference spec id in commit body: `Spec: 0042`.
 
 ## Versioning (semver, auto)
 
@@ -101,9 +91,9 @@ If any step fails, fix it or open a follow-up spec — do not silently mark comp
 - Anything that requires an external service (Postgres, Redis, Stripe, Resend, Railway plugin, S3, etc.) **must** be documented in `docs/runbook/SERVICES.md` in the same commit it's introduced.
 - Recreate steps for blowing away cloud env: `docs/runbook/RECREATE.md`. Update it when infra changes.
 
-## Anything missing?
+## Model selection
 
-If you spot something the user asked for but is not yet wired (test framework, lint config, env var, runbook entry, GitHub workflow, deploy hook), **add a spec for it** under `docs/specs/` and call it out at the end of your reply in one line.
+- Don't pin a model. Use whatever model the running CLI is set to; I switch with `/model` (including the latest, e.g. Fable). Never hardcode a model id in settings or scripts.
 
 ## Network + secrets
 
@@ -113,5 +103,5 @@ If you spot something the user asked for but is not yet wired (test framework, l
 ## Token discipline
 
 - Default reply: bullets/table, ≤ 10 lines unless asked.
-- Code edits: smallest diff that satisfies the spec.
+- Code edits: smallest diff that satisfies the request.
 - No unsolicited recaps of changes already shown in the diff.

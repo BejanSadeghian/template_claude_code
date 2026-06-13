@@ -62,7 +62,7 @@ fi
 # Step 3: gh auth status (best-effort — don't fail container on this)
 if command -v gh >/dev/null 2>&1; then
     if ! gh auth status >/dev/null 2>&1; then
-        echo "[hint] Run 'gh auth login -s project' in this terminal to enable PR / deploy verification and the Specs board sync."
+        echo "[hint] Run 'gh auth login' in this terminal to enable PR / deploy verification."
     fi
 fi
 
@@ -95,8 +95,10 @@ LOCAL_CLAUDE="/home/node/.claude"
 if [ -d "$HOST_CLAUDE" ]; then
     mkdir -p "$LOCAL_CLAUDE"
     # `plugins` must be writable (Claude Code mutates marketplace cache on load).
-    # Everything else is read-only on consume, so symlinks are fine.
-    for item in skills settings.json plugins.json marketplaces commands agents output-styles; do
+    # `settings.json` is handled separately below (Claude Code writes the model
+    # choice into it, so it must be writable too). Everything else is read-only
+    # on consume, so symlinks are fine.
+    for item in skills plugins.json marketplaces commands agents output-styles; do
         SRC="$HOST_CLAUDE/$item"
         DST="$LOCAL_CLAUDE/$item"
         [ -e "$SRC" ] || continue
@@ -106,6 +108,19 @@ if [ -d "$HOST_CLAUDE" ]; then
         rm -rf "$DST"
         ln -s "$SRC" "$DST"
     done
+    # settings.json: copy (writable) instead of symlinking the read-only host
+    # mount. Claude Code persists the active model (e.g. `/model`) into this
+    # file; a read-only symlink makes the switch fail with "settings read only"
+    # and pins you to whatever the host last selected. Seed from host on first
+    # run only — never clobber a writable copy the user has since edited (so the
+    # in-container model choice survives container restarts).
+    SRC="$HOST_CLAUDE/settings.json"
+    DST="$LOCAL_CLAUDE/settings.json"
+    if [ -e "$SRC" ] && { [ -L "$DST" ] || [ ! -e "$DST" ]; }; then
+        rm -f "$DST"
+        cp "$SRC" "$DST"
+        chmod u+w "$DST"
+    fi
     # plugins/: copy host → container so it's writable. Re-syncable via `refresh-plugins`.
     if [ -x "$WORKSPACE/scripts/refresh-host-plugins.sh" ]; then
         bash "$WORKSPACE/scripts/refresh-host-plugins.sh" || true
@@ -118,8 +133,11 @@ if [ -f .gitmodules ]; then
     git submodule update --init --recursive --remote 2>/dev/null || true
 fi
 
-# Step 7: keep Claude Code up to date (every container start)
-if command -v npm >/dev/null 2>&1; then
+# Step 7: keep container tooling up to date (every container start).
+# Same thing the `update` alias runs by hand: Claude Code, Railway, Azure CLI.
+if [ -f scripts/update.sh ]; then
+    bash scripts/update.sh || true
+elif command -v npm >/dev/null 2>&1; then
     npm update -g @anthropic-ai/claude-code >/dev/null 2>&1 || true
 fi
 

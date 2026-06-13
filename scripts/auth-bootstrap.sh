@@ -7,20 +7,16 @@ set -u
 
 echo "── auth bootstrap ───────────────────────────────────"
 
-# gh: needs `project` scope for Specs board sync.
+# gh: standard auth so `git push` / PR flows work.
 # Use the web (browser) device flow — no username/password, no token paste, no SSH key prompts.
 if command -v gh >/dev/null 2>&1; then
   if ! gh auth status >/dev/null 2>&1; then
     echo "GitHub: not logged in. Launching browser device flow…"
     echo "  → you'll see a one-time code and a github.com URL — open it in your host browser."
-    gh auth login --hostname github.com --git-protocol https --web --scopes project \
-      || echo "  (gh login skipped or failed — re-run later with: gh auth login -w -s project)"
-  elif ! gh auth status 2>&1 | grep -qi 'project'; then
-    echo "GitHub: logged in but missing 'project' scope. Refreshing via browser…"
-    gh auth refresh --hostname github.com --scopes project \
-      || echo "  (refresh skipped or failed)"
+    gh auth login --hostname github.com --git-protocol https --web \
+      || echo "  (gh login skipped or failed — re-run later with: gh auth login -w)"
   else
-    echo "GitHub: ✓ logged in with project scope"
+    echo "GitHub: ✓ logged in"
   fi
 else
   echo "GitHub: gh not installed; skipping"
@@ -36,6 +32,20 @@ if command -v railway >/dev/null 2>&1; then
   fi
 else
   echo "Railway: railway CLI not installed; skipping"
+fi
+
+# Azure (optional) — device-code flow, no password / no browser-in-container needed
+if command -v az >/dev/null 2>&1; then
+  if ! az account show >/dev/null 2>&1; then
+    echo "Azure: not logged in. Launching device-code flow…"
+    echo "  → open the printed URL in your host browser and enter the code."
+    az login --use-device-code --only-show-errors >/dev/null \
+      || echo "  (az login skipped or failed — re-run later with: az login --use-device-code)"
+  else
+    echo "Azure: ✓ logged in"
+  fi
+else
+  echo "Azure: az CLI not installed; skipping"
 fi
 
 echo "─────────────────────────────────────────────────────"
