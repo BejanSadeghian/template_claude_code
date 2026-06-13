@@ -24,11 +24,12 @@ Most "AI-assisted" starter kits leave the human in the loop for every step. This
 
 | Area | What you get |
 |---|---|
-| Devcontainer | Debian 13 + Node 24, gh, Railway CLI, ripgrep/fd, Python tooling, `sox` for voice. Permissive outbound network. Full passwordless sudo. |
+| Devcontainer | Debian 13 + Node 24, gh, Railway CLI, Azure CLI, ripgrep/fd, Python tooling, `sox` for voice. Permissive outbound network. Full passwordless sudo. |
 | Claude Code defaults | Starts in `bypassPermissions` mode. CLI alias for `--dangerously-skip-permissions`. Extension force-upgraded on every container start. Auto-open Claude panel on folder open. |
-| Host plugin reuse | Host plugins copied into a writable container dir on start (rsync). Skills/commands/agents/settings symlinked live. `refresh-plugins` alias re-syncs after a host install. |
-| Auth bootstrap | `gh auth login` + `railway login` auto-prompt on container start if not already authed. Skip with `SKIP_AUTH_BOOTSTRAP=1`. |
-| Remote-first auto-push | No keyword trigger. Claude commits with conventional messages and pushes after every meaningful change, keeping the remote as the source of truth. |
+| Tooling auto-update | Every container start updates Claude Code + Railway + Azure CLIs. Run it any time by hand with the single-word `update` command. |
+| Host plugin reuse | Host plugins copied into a writable container dir on start (rsync). Skills/commands/agents symlinked live; `settings.json` copied writable so `/model` persists. `refresh-plugins` alias re-syncs after a host install. |
+| Auth bootstrap | Browser/device-code login for `gh`, `railway`, and `az` auto-prompts on first container start — no passwords or token paste. Skip with `SKIP_AUTH_BOOTSTRAP=1`. |
+| Remote-first auto-push | No keyword trigger, no PRs. Claude commits with conventional messages and pushes straight to `main` after every meaningful change, keeping the remote as the source of truth. |
 | Continuous async workflow | Orchestrator Claude dispatches developer + test-engineer subagents in isolated git worktrees as soon as a task is solid. You keep planning; results surface only on blockers or full-green. |
 | Auto semver | Conventional commits drive `feat!:`/`feat:`/`fix:` → major/minor/patch. `pre-push` bumps `VERSION` and tags `vX.Y.Z`. |
 | Template sync | Every container start checks for upstream template updates and prompts `accept/reject/defer/skip-this-version` per SHA. |
@@ -70,9 +71,10 @@ gh repo create <new-name> --private --source=. --push
 
 Once the container is up, on first start it will:
 
-1. Auto-prompt `gh auth login` and `railway login` (skips if already authed).
+1. Auto-prompt browser/device-code login for `gh`, `railway`, and `az` (skips if already authed — no passwords).
 2. Auto-open the Claude Code panel.
-3. Run `template-sync.sh` to check for any upstream updates.
+3. Update the bundled CLIs (Claude Code, Railway, Azure) — same as running `update`.
+4. Run `template-sync.sh` to check for any upstream updates.
 
 Then you tell Claude what you want to build. Read `CLAUDE.md` for the working rules.
 
@@ -157,6 +159,7 @@ Either pops an interactive prompt with a per-file diff and four choices: accept,
 | Auto-open Claude Code on folder open | `.vscode/tasks.json` | on |
 | `claudeCode.initialPermissionMode` | `.devcontainer/devcontainer.json` settings | `bypassPermissions` |
 | Skip auth bootstrap | env `SKIP_AUTH_BOOTSTRAP=1` | off |
+| Update bundled CLIs | run `update` (or `bash scripts/update.sh`); also runs on every container start | on start |
 | Skip version bump on push | env `SKIP_VERSION_BUMP=1` or `[skip version]` in commit msg | off |
 | Cross-project shared submodule | `bash scripts/shared-claude.sh init <url>` | not initialized |
 | Active model | `/model` in Claude Code (persisted to your writable `~/.claude/settings.json`) | not pinned |

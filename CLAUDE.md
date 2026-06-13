@@ -12,8 +12,8 @@ Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emoj
 
 Keep the remote up to date automatically. There is no keyword trigger — **never** wait for me to say commit / push / ship / deploy, and **never** ask "want me to commit/push?", "want a PR?", "should I deploy?", or "should I hold so you can test?". Just do it. The only time you ask is a genuine fork-in-the-road decision that's mine to make — never a permission-to-proceed gate.
 
-- After any meaningful, working change, stage it, commit with a conventional message, `git push`, and deploy if a deploy path is configured. No confirmation, no file-list recap.
-- Open a PR yourself when branching is warranted; don't ask first.
+- After any meaningful, working change, stage it, commit with a conventional message, `git push` to `main`, and deploy if a deploy path is configured. No confirmation, no file-list recap.
+- No PRs. Commit straight to `main` — don't open pull requests, don't branch, don't ask about either.
 - Commit at logical checkpoints rather than batching unrelated work into one blob.
 - The remote is the source of truth. If local and remote diverge, reconcile (pull/rebase) before pushing rather than forcing.
 - Don't push obviously broken work — run the relevant checks first (see Definition of done). If something fails, fix it or say so; don't sit on green work waiting for permission.
@@ -70,7 +70,7 @@ If any step fails, fix it — do not silently mark complete.
 
 ## Commits
 
-- Commit and push directly to `main` by default. Branches + PRs only when isolation actually helps (long-running work, risky refactors, external collaborators).
+- Always commit and push directly to `main`. No branches, no PRs.
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Use `feat!:` or include `BREAKING CHANGE:` in the body for major bumps.
 
 ## Versioning (semver, auto)

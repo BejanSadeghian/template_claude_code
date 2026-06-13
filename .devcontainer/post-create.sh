@@ -133,8 +133,11 @@ if [ -f .gitmodules ]; then
     git submodule update --init --recursive --remote 2>/dev/null || true
 fi
 
-# Step 7: keep Claude Code up to date (every container start)
-if command -v npm >/dev/null 2>&1; then
+# Step 7: keep container tooling up to date (every container start).
+# Same thing the `update` alias runs by hand: Claude Code, Railway, Azure CLI.
+if [ -f scripts/update.sh ]; then
+    bash scripts/update.sh || true
+elif command -v npm >/dev/null 2>&1; then
     npm update -g @anthropic-ai/claude-code >/dev/null 2>&1 || true
 fi
 

@@ -47,6 +47,9 @@ RUN ARCH=$(dpkg --print-architecture) && \
 # Install Railway CLI (used by /verify and runbook)
 RUN curl -fsSL https://railway.app/install.sh | sh || true
 
+# Install Azure CLI (so Azure deploys work out of the box)
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash || true
+
 USER node
 
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
@@ -63,10 +66,11 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     -a "alias claude='claude --dangerously-skip-permissions'" \
     -a "alias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'" \
+    -a "alias update='bash /workspace/scripts/update.sh'" \
     -x
 
 # Same aliases for bash (devcontainer terminals occasionally use it)
-RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'\n" >> /home/node/.bashrc
+RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'\nalias update='bash /workspace/scripts/update.sh'\n" >> /home/node/.bashrc
 
 # Claude Code + globally useful CLIs
 RUN npm install -g \

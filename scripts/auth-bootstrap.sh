@@ -34,4 +34,18 @@ else
   echo "Railway: railway CLI not installed; skipping"
 fi
 
+# Azure (optional) — device-code flow, no password / no browser-in-container needed
+if command -v az >/dev/null 2>&1; then
+  if ! az account show >/dev/null 2>&1; then
+    echo "Azure: not logged in. Launching device-code flow…"
+    echo "  → open the printed URL in your host browser and enter the code."
+    az login --use-device-code --only-show-errors >/dev/null \
+      || echo "  (az login skipped or failed — re-run later with: az login --use-device-code)"
+  else
+    echo "Azure: ✓ logged in"
+  fi
+else
+  echo "Azure: az CLI not installed; skipping"
+fi
+
 echo "─────────────────────────────────────────────────────"
