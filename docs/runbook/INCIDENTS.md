@@ -23,5 +23,5 @@ Short. Use during fires; expand as you learn.
 | Auth loops | Cookie domain mismatch after DNS change | Update `APP_URL` env |
 
 ## After resolution
-- Open a spec `docs/specs/NNNN-incident-<short>.md` with timeline + root cause + prevention task list.
+- Write up a short incident note (timeline + root cause + prevention task list) wherever you track work.
 - Add a regression test that would have caught it.

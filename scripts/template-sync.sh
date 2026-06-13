@@ -27,15 +27,12 @@ PATHS=(
     scripts/setup-hooks.sh
     scripts/verify-deploy.sh
     scripts/bump-version.sh
-    scripts/setup-github-project.sh
-    scripts/sync-specs-to-github.sh
     scripts/refresh-host-plugins.sh
     scripts/auth-bootstrap.sh
     scripts/shared-claude.sh
     .vscode/tasks.json
     hooks/pre-commit
     hooks/pre-push
-    docs/specs/TEMPLATE.md
     docs/runbook
     CLAUDE.md
 )
