@@ -81,8 +81,13 @@ For each batch of upstream changes you get a per-SHA choice:
 | **defer** | Re-prompt next container start. |
 | **skip-this-version** | Skip just this SHA; future template commits still prompt. |
 
-If you changed template-owned files locally, `template-update` won't auto-stage over them —
-commit or stash first.
+**On container start, updates auto-apply** when your template-owned paths are clean:
+the sync commits them locally for you (no prompt) and tells you to push. It never
+runs when those paths have uncommitted changes (you commit/stash first), and you can
+turn auto-apply off with `TEMPLATE_AUTOSYNC=0` (then it just notifies). The four-choice
+prompt above is for when you run `template-update` yourself in a terminal.
 
-> **Devcontainer changes need a rebuild.** Updates to `.devcontainer/*` or the
-> `Dockerfile` only take effect after **Dev Containers: Rebuild Container**.
+If you changed template-owned files locally, the sync won't stage over them — commit or stash first.
+
+> **Devcontainer changes need a rebuild.** Auto-applied or not, updates to
+> `.devcontainer/*` or the `Dockerfile` only take effect after **Dev Containers: Rebuild Container**.

@@ -149,7 +149,7 @@ Short commands (aliases available in every container terminal):
 | `template-update` | Pull the latest template changes (interactive). Same as `bash scripts/template-sync.sh`. |
 | `update` | Update the installed CLIs (Claude Code, Railway, Azure). |
 
-`template-status` runs and `docs/TEMPLATE.md` opens automatically on every container start, so you always see your version and update commands. `template-update` also auto-prompts on start when updates exist; it offers a per-file diff with four choices: accept, reject (permanent for that SHA), defer (re-prompt next start), or skip-this-version. It only touches template-owned paths — never your app code. See [`docs/TEMPLATE.md`](docs/TEMPLATE.md).
+`template-status` runs and `docs/TEMPLATE.md` opens automatically on every container start, so you always see your version. **Updates auto-apply on start** when your template-owned paths are clean (committed locally for you; push when ready) — opt out with `TEMPLATE_AUTOSYNC=0`. Running `template-update` yourself in a terminal gives the interactive per-file diff with four choices: accept, reject (permanent for that SHA), defer, or skip-this-version. It only touches template-owned paths — never your app code. See [`docs/TEMPLATE.md`](docs/TEMPLATE.md).
 
 ## Configuration
 

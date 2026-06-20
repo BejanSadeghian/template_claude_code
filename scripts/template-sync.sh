@@ -91,10 +91,42 @@ if ! git diff --quiet -- "${EXISTING_PATHS[@]}" 2>/dev/null || \
     exit 0
 fi
 
-# Need a TTY for prompts.
+# Reusable apply: fast-forward template-owned paths and commit locally.
+# Returns 0 if it committed, 1 if there was nothing to commit.
+apply_update() {
+    git checkout "$TEMPLATE_REMOTE/$TEMPLATE_BRANCH" -- "${EXISTING_PATHS[@]}"
+    # Drop any paths that no longer exist upstream.
+    for p in "${EXISTING_PATHS[@]}"; do
+        if ! git cat-file -e "$TEMPLATE_REMOTE/$TEMPLATE_BRANCH:$p" 2>/dev/null; then
+            git rm -r --ignore-unmatch "$p" >/dev/null 2>&1 || true
+        fi
+    done
+    git add -- "${EXISTING_PATHS[@]}" 2>/dev/null || true
+    if git diff --cached --quiet; then
+        echo "Nothing to commit after merge (already in sync)."
+        return 1
+    fi
+    git commit -q -m "chore: sync template ${TEMPLATE_SHA:0:7}
+
+Template-owned paths fast-forwarded from $TEMPLATE_REMOTE/$TEMPLATE_BRANCH @ $TEMPLATE_SHA.
+Review the diff and push when ready."
+    return 0
+}
+
+# Non-interactive (e.g. container start): auto-apply when the tree is clean
+# (verified above), unless opted out with TEMPLATE_AUTOSYNC=0.
 if [ ! -t 0 ] || [ ! -t 1 ]; then
-    echo "── template updates available (run scripts/template-sync.sh in a terminal) ──"
+    if [ "${TEMPLATE_AUTOSYNC:-1}" = "0" ]; then
+        echo "── template updates available (run \`template-update\` in a terminal) ──"
+        echo "$DIFF_FILES" | sed 's/^/  /'
+        exit 0
+    fi
+    echo "── applying template updates automatically ──"
     echo "$DIFF_FILES" | sed 's/^/  /'
+    if apply_update; then
+        echo "Committed locally (chore: sync template ${TEMPLATE_SHA:0:7})."
+        echo "Push when ready; rebuild the container if .devcontainer/ changed."
+    fi
     exit 0
 fi
 
@@ -125,26 +157,11 @@ while true; do
     ACTION="$(prompt '[a]ccept / [r]eject / [d]efer / [s]kip-this-version ?')"
     case "$ACTION" in
         a|A)
-            git checkout "$TEMPLATE_REMOTE/$TEMPLATE_BRANCH" -- "${EXISTING_PATHS[@]}"
-            # Drop any paths that no longer exist upstream
-            for p in "${EXISTING_PATHS[@]}"; do
-                if ! git cat-file -e "$TEMPLATE_REMOTE/$TEMPLATE_BRANCH:$p" 2>/dev/null; then
-                    git rm -r --ignore-unmatch "$p" >/dev/null 2>&1 || true
-                fi
-            done
-            git add -- "${EXISTING_PATHS[@]}" 2>/dev/null || true
-            if git diff --cached --quiet; then
-                echo "Nothing to commit after merge (already in sync)."
-                exit 0
+            if apply_update; then
+                echo
+                echo "Committed locally. Inspect with: git show HEAD"
+                echo "Push when ready:               git push"
             fi
-            SHORT="${TEMPLATE_SHA:0:7}"
-            git commit -m "chore: sync template $SHORT
-
-Template-owned paths fast-forwarded from $TEMPLATE_REMOTE/$TEMPLATE_BRANCH @ $TEMPLATE_SHA.
-Review the diff and push when ready."
-            echo
-            echo "Committed locally. Inspect with: git show HEAD"
-            echo "Push when ready:               git push"
             exit 0
             ;;
         r|R)
