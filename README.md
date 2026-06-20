@@ -28,16 +28,16 @@ Most "AI-assisted" starter kits leave the human in the loop for every step. This
 | Claude Code defaults | Starts in `bypassPermissions` mode. CLI alias for `--dangerously-skip-permissions`. Extension force-upgraded on every container start. Auto-open Claude panel on folder open. |
 | Tooling auto-update | Every container start updates Claude Code + Railway + Azure CLIs. Run it any time by hand with the single-word `update` command. |
 | Claude config | Single writable named volume at `/home/node/.claude` (`CLAUDE_CONFIG_DIR`), matching Anthropic's official devcontainer. `settings.json` is writable so `/model` works; plugins/skills/auth persist across rebuilds. Host `~/.claude` is **not** mounted. |
-| Auth bootstrap | Browser/device-code login for `gh`, `railway`, and `az` auto-prompts on first container start — no passwords or token paste. Skip with `SKIP_AUTH_BOOTSTRAP=1`. |
-| Remote-first auto-push | No keyword trigger, no PRs. Claude commits with conventional messages and pushes straight to `main` after every meaningful change, keeping the remote as the source of truth. |
+| Auth bootstrap | Browser/device-code login for `gh`, `railway`, and `az` on first container start — no passwords. Opt into credential entry with `setup` / `CLAUDE_AUTH_WEB=0`. Skip with `SKIP_AUTH_BOOTSTRAP=1`. |
+| `setup` wizard | One command picks app type (web/iOS), git workflow (main or branch+PR), CI on/off, deploy target, and auth mode — writes `claude/project.md` (the profile Claude obeys) and installs the matching modules. |
+| Pick-and-choose modules | Nothing deploy/CI-specific is bundled. `module add deploy-railway` / `deploy-azure` / `stack-web` / `stack-ios` drop in only what you want (workflows + verify scripts + CLAUDE rules). |
+| Custom instructions | `claude/preferences.md` (shared) and `CLAUDE.local.md` (personal, gitignored) for always-follow rules Claude reads every session. |
+| Remote-first auto-push | No keyword trigger. Claude commits + pushes after every meaningful change; destination (straight to `main`, or branch+PR) follows `claude/project.md`. |
 | Continuous async workflow | Orchestrator Claude dispatches developer + test-engineer subagents in isolated git worktrees as soon as a task is solid. You keep planning; results surface only on blockers or full-green. |
 | Auto semver | Conventional commits drive `feat!:`/`feat:`/`fix:` → major/minor/patch. `pre-push` bumps `VERSION` and tags `vX.Y.Z`. |
-| Template sync | Every container start checks for upstream template updates and prompts `accept/reject/defer/skip-this-version` per SHA. |
-| Cross-project shared memory | Optional private submodule at `claude/shared/` for rules that apply across all your repos. Claude routes "this would apply everywhere" feedback there. |
-| Stack guidance | `claude/CLAUDE.node-webapp.md`, `claude/CLAUDE.ios-webapi.md` for stack-specific rules. |
-| Runbook scaffolding | `docs/runbook/SERVICES.md`, `RECREATE.md`, `INCIDENTS.md` (Railway-flavored examples; replaceable). |
-| CI + hooks | Local git hooks and matching GitHub Actions for lint, typecheck, unit, API, E2E, deploy verify. |
-| Per-repo identity | Random VS Code title-bar color per clone so windows are visually distinct. |
+| Template sync | Every container start checks for upstream template updates; `template-status` shows how far behind you are, `template-update` applies them per-SHA. |
+| Cross-project shared memory | Optional private submodule at `claude/shared/` for rules that apply across all your repos. |
+| Per-repo identity | Window title = repo name; random VS Code title-bar color per clone so windows are visually distinct. |
 
 ## What this is not
 
@@ -72,11 +72,11 @@ gh repo create <new-name> --private --source=. --push
 Once the container is up, on first start it will:
 
 1. Auto-prompt browser/device-code login for `gh`, `railway`, and `az` (skips if already authed — no passwords).
-2. Auto-open the Claude Code panel.
+2. Auto-open the Claude Code panel and `docs/TEMPLATE.md` (your version + commands).
 3. Update the bundled CLIs (Claude Code, Railway, Azure) — same as running `update`.
-4. Run `template-sync.sh` to check for any upstream updates.
+4. Print `template-status` and check for upstream template updates.
 
-Then you tell Claude what you want to build. Read `CLAUDE.md` for the working rules.
+Then run **`setup`** once to pick your app type, git workflow, CI, deploy target, and auth mode — it writes `claude/project.md` and installs the matching modules. Add always-follow rules in `claude/preferences.md`. Read `CLAUDE.md` for the working rules; full guide in [`docs/TEMPLATE.md`](docs/TEMPLATE.md).
 
 Optional: link a shared rules repo (see [Cross-project shared memory](#cross-project-shared-memory)):
 
@@ -161,6 +161,10 @@ Short commands (aliases available in every container terminal):
 | Window title | `.vscode/settings.json` → `window.title` | `${rootName}` (just the repo name) |
 | Window / title-bar color | `.vscode/settings.json` → `workbench.colorCustomizations` (delete file + rebuild for a new random hue) | random per repo |
 | `claudeCode.initialPermissionMode` | `.devcontainer/devcontainer.json` settings | `bypassPermissions` |
+| Project profile (app type, git workflow, CI, deploy, auth) | run `setup` → writes `claude/project.md` | unset (run `setup`) |
+| Always-follow custom rules | `claude/preferences.md` (shared) · `CLAUDE.local.md` (personal, gitignored) | empty |
+| Installed modules | `module add/remove <name>` (sources in `modules/`) | none |
+| Auth login mode | `setup` (web vs password) or env `CLAUDE_AUTH_WEB=0` | web/browser |
 | Skip auth bootstrap | env `SKIP_AUTH_BOOTSTRAP=1` | off |
 | Update bundled CLIs | run `update` (or `bash scripts/update.sh`); also runs on every container start | on start |
 | Skip version bump on push | env `SKIP_VERSION_BUMP=1` or `[skip version]` in commit msg | off |
@@ -175,7 +179,7 @@ Short commands (aliases available in every container terminal):
 - **Claude Code is auto-updated** on every container start (`npm update -g @anthropic-ai/claude-code`). Pin with the `CLAUDE_CODE_VERSION` build arg if you need reproducibility.
 - **Model is never pinned.** Use `/model` to pick any model the running CLI supports (including the latest, e.g. Fable). The choice persists in the writable container `settings.json`; nothing in this template hardcodes a model id.
 - **Async subagent dispatch requires `git worktree`.** The orchestrator uses isolated worktrees so parallel agents don't clobber each other.
-- **Provider-coupled examples.** `scripts/verify-deploy.sh`, `docs/runbook/*` are Railway-flavored. Replace per provider; keep the shape.
+- **Deploy/CI is modular, not bundled.** The default repo wires no provider or workflows. `module add deploy-railway` / `deploy-azure` drops in that provider's `verify-deploy.sh`, workflow, and CLAUDE rules; `stack-web` / `stack-ios` drops in CI + the stack's definition-of-done. Pick only what you use.
 - **Window title + title-bar color** are written to `.vscode/settings.json` on first start: `window.title` = `${rootName}` (just the repo name, no "Dev Container:" prefix) and a random per-repo color under `workbench.colorCustomizations`. Edit either there; delete the file and rebuild for a new hue. See [`docs/TEMPLATE.md`](docs/TEMPLATE.md).
 
 ## Contributing

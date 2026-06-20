@@ -1,0 +1,1 @@
+Deploy to Railway: CI-gated deploy-verify workflow, scripts/verify-deploy.sh smoke check, and a runbook.

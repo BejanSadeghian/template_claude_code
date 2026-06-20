@@ -47,3 +47,6 @@ ios/Pods/
 *.xcuserstate
 xcuserdata/
 memory/
+
+# Personal, machine-local Claude rules (not shared with the team)
+CLAUDE.local.md

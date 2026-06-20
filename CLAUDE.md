@@ -2,106 +2,72 @@
 
 Be terse. Bullets > prose. Tables when comparing. No preamble, no recap, no emojis. Only expand if I ask.
 
-## Stack-specific rules
-- Node/TS webapp → also read `claude/CLAUDE.node-webapp.md`
-- iOS app + web API → also read `claude/CLAUDE.ios-webapi.md`
-- `/verify` playbook lives in `claude/commands/`.
-- If unsure which stack, ask one question, then proceed.
+## Read these first (project config)
+
+Before acting, read and follow, in order:
+1. `claude/project.md` — the project profile (app type, git workflow, CI, deploy, auth). **Obey it.** If it's missing, tell me to run `setup`.
+2. `claude/preferences.md` — my always-follow custom instructions (e.g. where TODOs live). Obey it.
+3. `claude/modules/*.md` — rules added by installed modules (stack / deploy specifics, e.g. the exact lint/test commands).
+4. `claude/shared/CLAUDE.md` if it exists — cross-project rules. This file wins on direct conflict.
 
 ## Remote-first, auto-push (mandatory)
 
-Keep the remote up to date automatically. There is no keyword trigger — **never** wait for me to say commit / push / ship / deploy, and **never** ask "want me to commit/push?", "want a PR?", "should I deploy?", or "should I hold so you can test?". Just do it. The only time you ask is a genuine fork-in-the-road decision that's mine to make — never a permission-to-proceed gate.
+Keep the remote up to date automatically. No keyword trigger — **never** wait for me to say commit / push / ship / deploy, and **never** ask "want me to commit/push?", "want a PR?", "should I deploy?", or "should I hold so you can test?". Just do it. Ask only for a genuine fork-in-the-road decision that's mine to make — never a permission-to-proceed gate.
 
-- After any meaningful, working change, stage it, commit with a conventional message, `git push` to `main`, and deploy if a deploy path is configured. No confirmation, no file-list recap.
-- No PRs. Commit straight to `main` — don't open pull requests, don't branch, don't ask about either.
-- Commit at logical checkpoints rather than batching unrelated work into one blob.
-- The remote is the source of truth. If local and remote diverge, reconcile (pull/rebase) before pushing rather than forcing.
-- Don't push obviously broken work — run the relevant checks first (see Definition of done). If something fails, fix it or say so; don't sit on green work waiting for permission.
-
-Trivial-only sessions (a single typo/format tweak) can still be one commit — just push it.
-
-## Cross-project shared memory (optional submodule)
-
-If `claude/shared/CLAUDE.md` exists (i.e. a downstream repo has run `bash scripts/shared-claude.sh init <url>`), **also** read it. Those are cross-project rules; project-level rules in this file take precedence on direct conflict.
-
-When you decide to save a feedback/preference memory:
-- **Project-specific** (relevant only here) → local `memory/` per the auto-memory rules.
-- **Cross-project** (a rule that would apply in any of my repos) → draft a file under `claude/shared/proposals/<YYYY-MM-DD>-<slug>.md` and commit + push inside the submodule:
-  ```sh
-  git -C claude/shared add proposals/<file>.md
-  git -C claude/shared commit -m "propose: <slug>"
-  git -C claude/shared push
-  ```
-  Use your best judgment on which bucket. Default to project-specific if unsure.
-
-If `claude/shared/` does **not** exist, the shared mechanism is disabled — keep everything in local `memory/`. Do not prompt me to set it up.
-
-## Continuous async workflow
-
-I want a continuous async workflow. My job is ideation and planning — I will describe and refine features in conversation with you. Your job is to dispatch agents to build them the moment the idea is solid enough to act on, without interrupting me.
-
-Rules:
-- When a task is clear enough to build, dispatch developer + test-engineer immediately and background them.
-- Don't wait for me to say "go build it" — use your judgment on readiness.
-- Confirm dispatch in one line ("dispatched developer + test-engineer on [feature]") then stay in planning mode with me.
-- Surface agent results as a brief interruption only when they need a genuine decision from me, or when a feature is fully green, pushed, and deployed.
-- If agents hit a blocker, flag it quickly and ask what I want to do, then get back to planning.
-
-Mechanics (non-negotiable so parallel agents don't clobber each other):
-- Always dispatch with `isolation: "worktree"` so each task gets an isolated checkout + branch.
-- Never dispatch two tasks that touch the same files concurrently. If a conflict is unavoidable, queue the second and tell me in one line.
-- Rebuild your dispatch state each turn from `git worktree list`, not memory.
+- After any meaningful, working change: stage, commit (conventional message), push, and deploy if a deploy module is installed. No confirmation, no file-list recap.
+- **Git destination follows `claude/project.md` → Git workflow:**
+  - `main` → commit straight to `main`; no branches, no PRs.
+  - `branch-pr` → create a feature branch and open a PR automatically (still no asking); keep it updated until merged.
+- Commit at logical checkpoints, not one giant blob. The remote is the source of truth — reconcile (pull/rebase) before pushing; don't force.
+- Don't push obviously broken work — run the stack's checks first (Definition of done). Fix failures or say so.
 
 ## Definition of done
 
-A task is **not done** until all of these pass — verify each, do not assume:
+Not done until all pass — verify each, do not assume:
+- Lint + typecheck clean, tests pass — use the exact commands from your stack module (`claude/modules/*`). If no stack module is installed, run whatever checks the project defines.
+- Local hooks (`pre-commit`, `pre-push`) ran clean.
+- Pushed; the commit is visible on the remote.
+- If a deploy module is installed: `scripts/verify-deploy.sh` exits 0.
 
-| Step | How to verify |
-|---|---|
-| Lint + typecheck | `pnpm lint && pnpm typecheck` (or stack equivalent) returns 0 |
-| Unit tests | `pnpm test` — 0 failures, coverage not regressed |
-| Integration / API tests | `pnpm test:api` |
-| UI / E2E tests (if webapp) | `pnpm test:e2e` |
-| Local hooks | `pre-commit` and `pre-push` ran clean |
-| Pushed | `git push` exit 0; the commit is visible on the remote |
-| Deploy succeeded (if configured) | `scripts/verify-deploy.sh` exit 0 (smoke + health endpoint) |
-
-If any step fails, fix it — do not silently mark complete.
+If any step fails, fix it — don't silently mark complete.
 
 ## Commits
 
-- Always commit and push directly to `main`. No branches, no PRs.
-- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Use `feat!:` or include `BREAKING CHANGE:` in the body for major bumps.
+- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Use `feat!:` or `BREAKING CHANGE:` for a major bump.
+- Destination + PR behavior per the Git workflow above.
 
 ## Versioning (semver, auto)
 
 - The `VERSION` file and matching `v*` git tags are the source of truth.
-- `pre-push` hook auto-bumps based on conventional commits since the last tag (`feat!:`/BREAKING → major, `feat:` → minor, others → patch).
-- Add `[skip version]` to a commit message to exclude it from the bump, or `SKIP_VERSION_BUMP=1 git push` to skip the hook for one push.
-- Force a bump manually: `bash scripts/bump-version.sh [patch|minor|major]`.
+- `pre-push` auto-bumps from conventional commits since the last tag (`feat!:`/BREAKING → major, `feat:` → minor, else patch).
+- `[skip version]` in a message excludes it; `SKIP_VERSION_BUMP=1 git push` skips the hook once; `bash scripts/bump-version.sh [patch|minor|major]` forces one.
 
-## Testing defaults
+## Continuous async workflow
 
-- Always add tests when adding code paths. New endpoint → new API test. New screen/page → new E2E test.
-- Prefer real implementations over mocks. Mock only at process boundaries (network, time, randomness, fs).
-- Run the full local suite before pushing, even if a hook would catch it.
+My job is ideation and planning; yours is to build the moment an idea is solid.
+- When a task is clear enough, dispatch developer + test-engineer immediately and background them. Don't wait for "go build it".
+- Confirm dispatch in one line, then stay in planning mode with me.
+- Surface results only on a genuine decision, a blocker, or when a feature is green, pushed, and deployed.
+- Mechanics: always `isolation: "worktree"`; never run two tasks touching the same files concurrently (queue the second); rebuild dispatch state each turn from `git worktree list`.
 
-## Runbook + services
+## Cross-project shared memory (optional submodule)
 
-- Anything that requires an external service (Postgres, Redis, Stripe, Resend, Railway plugin, S3, etc.) **must** be documented in `docs/runbook/SERVICES.md` in the same commit it's introduced.
-- Recreate steps for blowing away cloud env: `docs/runbook/RECREATE.md`. Update it when infra changes.
+If `claude/shared/CLAUDE.md` exists (a repo ran `bash scripts/shared-claude.sh init <url>`), also read it. Project rules here win on conflict.
+- Project-specific memory → local `memory/`.
+- Cross-project (applies to any of my repos) → draft `claude/shared/proposals/<YYYY-MM-DD>-<slug>.md`, then commit + push inside the submodule. Default to project-specific if unsure.
+- If `claude/shared/` doesn't exist, the mechanism is off — keep everything in `memory/`. Don't prompt me to set it up.
 
 ## Model selection
 
-- Don't pin a model. Use whatever model the running CLI is set to; I switch with `/model` (including the latest, e.g. Fable). Never hardcode a model id in settings or scripts.
+Don't pin a model. Use whatever the running CLI is set to; I switch with `/model` (including the latest, e.g. Fable). Never hardcode a model id in settings or scripts.
 
 ## Network + secrets
 
-- Outbound network is unrestricted in this container. The user authenticates anything sensitive. See `.devcontainer/init-firewall.sh` (and git history) to restore a default-deny allowlist if needed.
-- Never write secrets to disk outside `.env` (gitignored). Never log secrets.
+- Outbound network is unrestricted in this container; I authenticate anything sensitive. See `.devcontainer/init-firewall.sh` to restore a default-deny allowlist.
+- Never write secrets outside `.env` (gitignored). Never log secrets.
+- Document any external service you add in `docs/runbook/` (a deploy module may scaffold this).
 
 ## Token discipline
 
 - Default reply: bullets/table, ≤ 10 lines unless asked.
-- Code edits: smallest diff that satisfies the request.
-- No unsolicited recaps of changes already shown in the diff.
+- Code edits: smallest diff that satisfies the request. No unsolicited recaps of changes already in the diff.

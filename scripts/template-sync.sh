@@ -21,12 +21,14 @@ TEMPLATE_URL="${TEMPLATE_URL:-https://github.com/BejanSadeghian/template_claude_
 # Template-owned paths. Anything outside this list is never touched.
 PATHS=(
     .devcontainer
-    .github
-    claude
+    modules
+    claude/settings.json
+    claude/commands
     scripts/template-sync.sh
     scripts/template-status.sh
+    scripts/module.sh
+    scripts/setup.sh
     scripts/setup-hooks.sh
-    scripts/verify-deploy.sh
     scripts/bump-version.sh
     scripts/update.sh
     scripts/auth-bootstrap.sh

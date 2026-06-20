@@ -14,9 +14,9 @@ CURRENT_VERSION="$( [ -f VERSION ] && tr -d ' \n' < VERSION || echo '?' )"
 
 # Template-owned paths (mirror of the list in scripts/template-sync.sh).
 PATHS=(
-    .devcontainer .github claude
-    scripts/template-sync.sh scripts/template-status.sh scripts/setup-hooks.sh
-    scripts/verify-deploy.sh scripts/bump-version.sh scripts/update.sh
+    .devcontainer modules claude/settings.json claude/commands
+    scripts/template-sync.sh scripts/template-status.sh scripts/module.sh
+    scripts/setup.sh scripts/setup-hooks.sh scripts/bump-version.sh scripts/update.sh
     scripts/auth-bootstrap.sh scripts/shared-claude.sh
     .vscode/tasks.json hooks/pre-commit hooks/pre-push docs/runbook
     docs/TEMPLATE.md CLAUDE.md
@@ -82,6 +82,8 @@ fi
 cat <<'EOF'
 
   commands:
+    setup             configure this project (app type, git, CI, deploy, auth)
+    module            list / add / remove opt-in modules
     template-status   show this panel (version + behind check)
     template-update   pull the latest template changes (interactive)
     update            update the CLIs (Claude Code, Railway, Azure)

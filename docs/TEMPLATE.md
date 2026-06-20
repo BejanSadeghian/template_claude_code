@@ -1,21 +1,57 @@
-# This template — version & commands
+# This template — setup, version & commands
 
 This repo was scaffolded from [`template_claude_code`](https://github.com/BejanSadeghian/template_claude_code).
-This page opens automatically on container start so you can see your version,
-whether you're behind the upstream template, and the short commands available.
+This page opens automatically on container start so you can see your setup, your
+version, whether you're behind the upstream template, and the short commands.
 
 > Live status (version + behind check) prints in the terminal on start. Run it
 > any time with `template-status`.
+
+## First-time setup — run `setup`
+
+`setup` is an interactive wizard. It asks four things and configures the repo so
+Claude follows your choices:
+
+| Choice | Options |
+|---|---|
+| App type | `web` or `ios` |
+| Git workflow | commit straight to **main** (no PR) · or **branch + PR** |
+| CI | on / off |
+| Deploy | `none` · `railway` · `azure` (pick any) |
+| Auth login | **web/browser** (no password) · or username/password |
+
+It writes **`claude/project.md`** (the profile Claude obeys) and installs the
+matching [modules](../modules/README.md). Re-run `setup` any time to change.
+
+## Customize what Claude always does
+
+| File | Purpose |
+|---|---|
+| `claude/project.md` | The profile above — app type, git workflow, CI, deploy, auth. Claude obeys it. |
+| `claude/preferences.md` | **Your always-follow custom rules** (e.g. "TODOs live in `docs/todo.md`"). Edit freely; Claude reads it every session. |
+| `claude/modules/*.md` | Rules added automatically when you install a module. |
+| `CLAUDE.local.md` | Personal, **gitignored** rules (not shared with the team). |
+
+`CLAUDE.md` (committed, shared) is the stack-agnostic core and points Claude at all of the above.
 
 ## Short commands
 
 | Command | What it does |
 |---|---|
-| `template-status` | Show your template version, whether you're behind upstream, and these commands. Read-only. |
-| `template-update` | Pull the latest template changes (interactive: accept / reject / defer / skip-this-version). Commits locally; you push. |
+| `setup` | Interactive project wizard (writes `claude/project.md`, installs modules). |
+| `module` | `module list` / `module add <name>` / `module remove <name>` — manage opt-in modules. |
+| `template-status` | Show your version, whether you're behind upstream, and these commands. Read-only. |
+| `template-update` | Pull the latest template changes (interactive: accept / reject / defer / skip). |
 | `update` | Update the installed CLIs (Claude Code, Railway, Azure). Also runs on every container start. |
 
-Each is just a short alias for `bash scripts/<name>.sh` — type the short name from any terminal.
+Each is a short alias for `bash scripts/<name>.sh` — type the short name from any terminal.
+
+## Auth (no passwords by default)
+
+On first container start, `gh`, `railway`, and `az` log in via **browser / device-code**
+flow — no username or password typed. To force credential/token entry instead, choose
+"username/password" in `setup` (sets `Auth: password` in `claude/project.md`) or set
+`CLAUDE_AUTH_WEB=0`. Skip auth entirely with `SKIP_AUTH_BOOTSTRAP=1`.
 
 ## Window appearance (title + color)
 
@@ -31,9 +67,10 @@ Both live in **`.vscode/settings.json`** (generated on first container start):
 
 ## How template updates work
 
-`template-update` only touches **template-owned paths** (`.devcontainer/`, `.github/`,
-`claude/`, the template `scripts/*`, `hooks/`, `docs/runbook/`, `docs/TEMPLATE.md`,
-`CLAUDE.md`). Your application code is never touched.
+`template-update` only touches **template-owned paths** (`.devcontainer/`, `modules/`,
+`claude/settings.json`, `claude/commands/`, the template `scripts/*`, `hooks/`,
+`docs/runbook/`, `docs/TEMPLATE.md`, `CLAUDE.md`). Your app code, your
+`claude/project.md`, `claude/preferences.md`, and installed module files are never touched.
 
 For each batch of upstream changes you get a per-SHA choice:
 

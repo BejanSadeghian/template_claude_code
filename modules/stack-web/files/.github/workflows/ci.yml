@@ -1,4 +1,4 @@
-name: CI
+name: CI (web)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-web-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -38,18 +38,3 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test -- --reporter=dot
       - run: pnpm test:api -- --reporter=dot
-
-  ios:
-    if: hashFiles('ios/**') != ''
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-${{ hashFiles('ios/**/*.swift', 'ios/**/*.pbxproj') }}
-      - name: Test
-        run: scripts/ios-test.sh
