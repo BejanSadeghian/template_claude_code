@@ -13,10 +13,14 @@ module remove deploy-azure  # remove the files a module added
 
 | Module | What it adds |
 |---|---|
-| `stack-web` | Node/TS CI + Playwright E2E workflows, the web stack guide, web definition-of-done rules. |
+| `stack-web` | Node/TS CI (lint/typecheck/test/build + preflight) + hosted Playwright E2E, web stack guide, web definition-of-done. |
 | `stack-ios` | Xcode CI workflow, the iOS stack guide, iOS definition-of-done rules. |
-| `deploy-railway` | Railway deploy-verify workflow, `verify-deploy.sh`, runbook. |
+| `deploy-railway` | Railway `deploy.yml` (guarded `railway up` + smoke), `verify-deploy.sh`, runbook. |
 | `deploy-azure` | Azure Web App deploy workflow, `verify-deploy.sh`. |
+| `agentic-e2e` | AI user-journey testing of the deployed app: scripted Playwright + a Claude vision judge (`qa/journeys.json`). |
+| `compliance` | License check that fails on GPL/AGPL/SSPL, notices LGPL (push/PR + weekly). |
+| `lighthouse` | Weekly Lighthouse performance/a11y/SEO audit of the deployed URL. |
+| `claude-action` | `anthropics/claude-code-action` on `@claude` mentions in issues/PRs. |
 
 ## Anatomy of a module
 

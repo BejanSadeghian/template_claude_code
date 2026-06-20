@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# Least-privilege. For production, pin actions to full commit SHAs (tags are mutable).
+permissions:
+  contents: read
+
 concurrency:
   group: ci-web-${{ github.ref }}
   cancel-in-progress: true
@@ -13,6 +17,7 @@ jobs:
   node:
     if: hashFiles('package.json') != ''
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:16
@@ -38,3 +43,27 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test -- --reporter=dot
       - run: pnpm test:api -- --reporter=dot
+      - run: pnpm build
+
+  preflight-models:
+    # Validates on-device model IDs load (auth/arch/processor) via `pnpm qa:preflight`.
+    # No-op (passes) in projects without that script — safe to keep installed.
+    if: hashFiles('package.json') != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Preflight model IDs
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.['qa:preflight']?0:1)"; then
+            pnpm qa:preflight
+          else
+            echo "no qa:preflight script defined — skipping"
+          fi

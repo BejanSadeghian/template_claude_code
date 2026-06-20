@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Landing page loads with a clear call to action",
+    "goto": "/",
+    "steps": [],
+    "expect": "The page renders without visible errors and shows an obvious primary action (e.g. Sign up / Get started)."
+  },
+  {
+    "name": "Visitor can reach the pricing/plans information",
+    "goto": "/",
+    "steps": ["click:Pricing"],
+    "expect": "A pricing or plans view is shown with at least one plan and a price or 'free' indication."
+  }
+]

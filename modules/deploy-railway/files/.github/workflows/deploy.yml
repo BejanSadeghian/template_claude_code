@@ -1,0 +1,54 @@
+name: Deploy (Railway)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false   # never cancel an in-flight production deploy
+
+jobs:
+  # Secrets can't be referenced in a job-level `if`, so gate via a job output.
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.check.outputs.ok }}
+    steps:
+      - id: check
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "RAILWAY_TOKEN not set — skipping deploy."
+          fi
+
+  deploy:
+    needs: guard
+    if: needs.guard.outputs.ok == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli@4   # pin for reproducibility
+      - name: Deploy services
+        run: |
+          # One `railway up` per service — edit to match your project.
+          railway up --service web
+          # railway up --service slm
+          # railway up --service voice
+      - name: Smoke check
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: bash scripts/verify-deploy.sh production

@@ -54,6 +54,7 @@ fi
 
 echo "─────────────────────────────────────────────────────"
 echo "Done."
+echo "  • Optional extras: module add agentic-e2e compliance lighthouse claude-action"
 echo "  • Edit claude/preferences.md for always-follow custom rules (e.g. where todos live)."
 echo "  • Auth mode '$AUTH' applies next container start (or run: bash scripts/auth-bootstrap.sh)."
 echo "  • Review changes, then commit."

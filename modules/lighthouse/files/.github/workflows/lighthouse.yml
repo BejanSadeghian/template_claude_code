@@ -1,0 +1,27 @@
+name: Lighthouse
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'   # weekly Mon 08:00 UTC
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to audit (defaults to vars.APP_URL)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12   # pin to a SHA in production
+        with:
+          urls: ${{ github.event.inputs.url || vars.APP_URL }}
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true

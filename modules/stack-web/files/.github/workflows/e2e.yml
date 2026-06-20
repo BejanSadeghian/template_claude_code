@@ -1,31 +1,30 @@
-name: E2E
+name: E2E (hosted)
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '0 7 * * *'   # nightly 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Deployed URL to test against'
+        required: false
+
+# Least-privilege. Pin actions to commit SHAs in production.
+permissions:
+  contents: read
 
 concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  E2E_BASE_URL: ${{ github.event.inputs.base_url || vars.APP_URL }}
+
 jobs:
   playwright:
     if: hashFiles('playwright.config.*') != ''
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: app_test
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
-    env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/app_test
-      CI: 'true'
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -37,6 +36,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.E2E_BASE_URL }}
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -45,3 +46,28 @@ jobs:
             playwright-report
             test-results
           retention-days: 7
+
+  fake-audio:
+    # Synthetic-audio QA (voice apps). Advisory — never blocks the run.
+    if: hashFiles('package.json') != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Fake-audio QA
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.['qa:fake-audio']?0:1)"; then
+            pnpm qa:fake-audio
+          else
+            echo "no qa:fake-audio script defined — skipping"
+          fi
+
+# The AI "agentic judge" job lives in the `agentic-e2e` module (module add agentic-e2e).

@@ -1,0 +1,27 @@
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+
+# Least-privilege for an assistant that opens PRs / comments.
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  claude:
+    # Only act on explicit @claude mentions (saves tokens).
+    if: contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1   # pin to a SHA in production
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

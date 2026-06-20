@@ -1,0 +1,61 @@
+name: Agentic E2E (AI journeys)
+
+on:
+  schedule:
+    - cron: '30 7 * * *'   # nightly 07:30 UTC (after the hosted E2E run)
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Deployed URL to test against'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agentic-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.c.outputs.ok }}
+    steps:
+      - id: c
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "ANTHROPIC_API_KEY not set — skipping agentic E2E."
+          fi
+
+  agentic:
+    needs: guard
+    if: needs.guard.outputs.ok == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      E2E_BASE_URL: ${{ github.event.inputs.base_url || vars.APP_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run AI user journeys
+        run: node scripts/agentic-e2e.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentic-e2e-artifacts
+          path: qa/artifacts
+          retention-days: 7
