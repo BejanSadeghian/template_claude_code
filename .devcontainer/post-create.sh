@@ -91,6 +91,21 @@ fi
 # (CLAUDE_CONFIG_DIR), exactly like Anthropic's official devcontainer. This keeps
 # settings.json writable so `/model` works, and the volume persists everything
 # you install across rebuilds. Nothing to symlink.
+#
+# One-time migration: older versions of this template symlinked these paths into
+# a read-only host mount (/home/node/.claude-host) that no longer exists. The
+# config volume persists across rebuilds, so those symlinks survive as dangling
+# links and break writes (e.g. `/model`). Remove any such stale symlink so
+# Claude Code recreates a real, writable file.
+LOCAL_CLAUDE="/home/node/.claude"
+for item in settings.json skills plugins.json marketplaces commands agents output-styles; do
+    DST="$LOCAL_CLAUDE/$item"
+    if [ -L "$DST" ]; then
+        case "$(readlink "$DST")" in
+            /home/node/.claude-host/*) rm -f "$DST"; echo "migrated: removed stale symlink ~/.claude/$item" ;;
+        esac
+    fi
+done
 
 # Step 6c: refresh any submodules (notably claude/shared if the user opted in).
 # No-op if .gitmodules is absent.
