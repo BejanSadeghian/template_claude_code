@@ -85,47 +85,12 @@ if [ -f .pre-commit-config.yaml ] && command -v pre-commit >/dev/null 2>&1; then
     pre-commit install || true
 fi
 
-# Step 6: surface host ~/.claude (plugins, skills, settings) via symlinks
-# Host ~/.claude is mounted read-only at /home/node/.claude-host.
-# /home/node/.claude is a writable named volume (sessions, history, projects).
-# We symlink the discovery paths from host into the writable dir so Claude Code
-# sees host plugins/skills/settings without copying or losing write state.
-HOST_CLAUDE="/home/node/.claude-host"
-LOCAL_CLAUDE="/home/node/.claude"
-if [ -d "$HOST_CLAUDE" ]; then
-    mkdir -p "$LOCAL_CLAUDE"
-    # `plugins` must be writable (Claude Code mutates marketplace cache on load).
-    # `settings.json` is handled separately below (Claude Code writes the model
-    # choice into it, so it must be writable too). Everything else is read-only
-    # on consume, so symlinks are fine.
-    for item in skills plugins.json marketplaces commands agents output-styles; do
-        SRC="$HOST_CLAUDE/$item"
-        DST="$LOCAL_CLAUDE/$item"
-        [ -e "$SRC" ] || continue
-        if [ -L "$DST" ] && [ "$(readlink "$DST")" = "$SRC" ]; then
-            continue
-        fi
-        rm -rf "$DST"
-        ln -s "$SRC" "$DST"
-    done
-    # settings.json: copy (writable) instead of symlinking the read-only host
-    # mount. Claude Code persists the active model (e.g. `/model`) into this
-    # file; a read-only symlink makes the switch fail with "settings read only"
-    # and pins you to whatever the host last selected. Seed from host on first
-    # run only — never clobber a writable copy the user has since edited (so the
-    # in-container model choice survives container restarts).
-    SRC="$HOST_CLAUDE/settings.json"
-    DST="$LOCAL_CLAUDE/settings.json"
-    if [ -e "$SRC" ] && { [ -L "$DST" ] || [ ! -e "$DST" ]; }; then
-        rm -f "$DST"
-        cp "$SRC" "$DST"
-        chmod u+w "$DST"
-    fi
-    # plugins/: copy host → container so it's writable. Re-syncable via `refresh-plugins`.
-    if [ -x "$WORKSPACE/scripts/refresh-host-plugins.sh" ]; then
-        bash "$WORKSPACE/scripts/refresh-host-plugins.sh" || true
-    fi
-fi
+# Step 6: Claude Code config.
+# Host ~/.claude is intentionally NOT mounted. All Claude config (settings,
+# plugins, skills, auth) lives in the writable named volume at /home/node/.claude
+# (CLAUDE_CONFIG_DIR), exactly like Anthropic's official devcontainer. This keeps
+# settings.json writable so `/model` works, and the volume persists everything
+# you install across rebuilds. Nothing to symlink.
 
 # Step 6c: refresh any submodules (notably claude/shared if the user opted in).
 # No-op if .gitmodules is absent.

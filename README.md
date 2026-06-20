@@ -27,7 +27,7 @@ Most "AI-assisted" starter kits leave the human in the loop for every step. This
 | Devcontainer | Debian 13 + Node 24, gh, Railway CLI, Azure CLI, ripgrep/fd, Python tooling, `sox` for voice. Permissive outbound network. Full passwordless sudo. |
 | Claude Code defaults | Starts in `bypassPermissions` mode. CLI alias for `--dangerously-skip-permissions`. Extension force-upgraded on every container start. Auto-open Claude panel on folder open. |
 | Tooling auto-update | Every container start updates Claude Code + Railway + Azure CLIs. Run it any time by hand with the single-word `update` command. |
-| Host plugin reuse | Host plugins copied into a writable container dir on start (rsync). Skills/commands/agents symlinked live; `settings.json` copied writable so `/model` persists. `refresh-plugins` alias re-syncs after a host install. |
+| Claude config | Single writable named volume at `/home/node/.claude` (`CLAUDE_CONFIG_DIR`), matching Anthropic's official devcontainer. `settings.json` is writable so `/model` works; plugins/skills/auth persist across rebuilds. Host `~/.claude` is **not** mounted. |
 | Auth bootstrap | Browser/device-code login for `gh`, `railway`, and `az` auto-prompts on first container start — no passwords or token paste. Skip with `SKIP_AUTH_BOOTSTRAP=1`. |
 | Remote-first auto-push | No keyword trigger, no PRs. Claude commits with conventional messages and pushes straight to `main` after every meaningful change, keeping the remote as the source of truth. |
 | Continuous async workflow | Orchestrator Claude dispatches developer + test-engineer subagents in isolated git worktrees as soon as a task is solid. You keep planning; results surface only on blockers or full-green. |
@@ -133,11 +133,11 @@ code .
 
 Inside the container, add `SKIP_AUTH_BOOTSTRAP=1` to `.devcontainer/devcontainer.json` → `containerEnv` so the gh/railway prompts don't fire.
 
-What you keep without GitHub: devcontainer build, Claude Code (CLI + extension), host plugin reuse, remote-first auto-push, `pre-commit` + `pre-push` hooks, auto semver bumps + local `v*` tags, and `template-sync.sh` (only needs anonymous HTTPS to github.com to pull template updates).
+What you keep without GitHub: devcontainer build, Claude Code (CLI + extension), writable container-local Claude config volume, remote-first auto-push, `pre-commit` + `pre-push` hooks, auto semver bumps + local `v*` tags, and `template-sync.sh` (only needs anonymous HTTPS to github.com to pull template updates).
 
 What you lose / replace: `gh pr create` → not relevant solo. For the optional `claude/shared/` submodule, either delete it (`git rm claude/shared && git rm .gitmodules`) or point it at a local bare repo: `git submodule add -b main /absolute/path/to/claude-shared.git claude/shared`.
 
-Fully air-gapped? Pre-pull `node:24-trixie`, drop `.template-source` (or ignore fetch warnings), and ensure host plugins are installed before container start.
+Fully air-gapped? Pre-pull `node:24-trixie` and drop `.template-source` (or ignore fetch warnings). Install any Claude plugins inside the container (`/plugin`); they persist in the config volume.
 
 ### Pull the latest template changes into a project
 
@@ -167,7 +167,7 @@ Either pops an interactive prompt with a per-file diff and four choices: accept,
 ## Notes & caveats
 
 - **Forking this template?** The default `.gitmodules` points at `BejanSadeghian/claude-shared` (private). If you don't have access, submodule init fails silently — no error, just an empty `claude/shared/` and the shared-rules section in `CLAUDE.md` is skipped. To use your own shared repo: `git rm claude/shared`, delete `.gitmodules`, commit, then `bash scripts/shared-claude.sh init <your-url>`.
-- **Container cannot write to host.** Host `~/.claude` is mounted read-only. Plugins **and** `settings.json` are *copied* into the container on start (not symlinked), so Claude Code can mutate marketplace cache and persist your `/model` choice without EROFS. `settings.json` is seeded from the host once, then left alone so an in-container model switch survives restarts. Trade-off: install a new plugin on the host → run `refresh-plugins` in the container (or restart) to pick it up.
+- **Claude config is container-local and writable.** We follow Anthropic's official devcontainer: a single writable named volume holds `/home/node/.claude`, and host `~/.claude` is **not** mounted. This is deliberate — the old read-only host mount made `~/.claude/settings.json` read-only, so `/model` failed with "read-only file system". Now `/model` and any settings change just work, and everything you install (plugins, skills, auth) persists in the volume across rebuilds. Trade-off: a fresh container starts with no host plugins — install them inside (`/plugin`) or log in once; the volume keeps them.
 - **`--dangerously-skip-permissions` is the default** inside the devcontainer (CLI alias + VS Code extension `bypassPermissions`). Acceptable because outbound network is permissive but the container is isolated from host. Never give the container a long-lived production token.
 - **Claude Code is auto-updated** on every container start (`npm update -g @anthropic-ai/claude-code`). Pin with the `CLAUDE_CODE_VERSION` build arg if you need reproducibility.
 - **Model is never pinned.** Use `/model` to pick any model the running CLI supports (including the latest, e.g. Fable). The choice persists in the writable container `settings.json`; nothing in this template hardcodes a model id.

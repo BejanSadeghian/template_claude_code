@@ -65,12 +65,11 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a "source /usr/share/doc/fzf/examples/completion.zsh" \
     -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     -a "alias claude='claude --dangerously-skip-permissions'" \
-    -a "alias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'" \
     -a "alias update='bash /workspace/scripts/update.sh'" \
     -x
 
 # Same aliases for bash (devcontainer terminals occasionally use it)
-RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias refresh-plugins='bash /workspace/scripts/refresh-host-plugins.sh'\nalias update='bash /workspace/scripts/update.sh'\n" >> /home/node/.bashrc
+RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias update='bash /workspace/scripts/update.sh'\n" >> /home/node/.bashrc
 
 # Claude Code + globally useful CLIs
 RUN npm install -g \

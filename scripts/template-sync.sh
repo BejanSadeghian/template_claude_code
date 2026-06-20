@@ -27,7 +27,7 @@ PATHS=(
     scripts/setup-hooks.sh
     scripts/verify-deploy.sh
     scripts/bump-version.sh
-    scripts/refresh-host-plugins.sh
+    scripts/update.sh
     scripts/auth-bootstrap.sh
     scripts/shared-claude.sh
     .vscode/tasks.json
