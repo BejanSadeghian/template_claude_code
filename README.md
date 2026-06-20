@@ -42,10 +42,10 @@ Most "AI-assisted" starter kits leave the human in the loop for every step. This
 ## What this is not
 
 - **Not a framework or stack.** No React, no FastAPI, no Rails. Bring your own.
-- **Not provider-locked.** Railway is the *default example* for the deploy/runbook bits; swap for any provider — the shape is what matters.
-- **Not a hands-off agent.** You make the decisions; Claude executes, verifies, and pushes to `main`. PRs/merges still happen on your call when you choose to branch.
-- **Not for one-off scripts.** The runbook/versioning weight pays off on projects you'll be back to next quarter.
-- **Not opinionated about test frameworks.** The "definition of done" table assumes pnpm by default, but every check is replaceable with your stack equivalent.
+- **Not provider-locked.** No deploy provider or CI is bundled by default. `module add deploy-railway` / `deploy-azure` adds the one you want; the shape is reusable for Fly/Render/AWS.
+- **Not a hands-off agent.** You make the decisions; Claude executes, verifies, and pushes — to `main` or a branch+PR per your `claude/project.md`.
+- **Not for one-off scripts.** The profile/module/versioning weight pays off on projects you'll be back to next quarter.
+- **Not opinionated about test frameworks.** Lint/test/deploy commands come from the stack module you install (`stack-web` is pnpm-based; swap or edit freely). Core ships none.
 
 ## Getting started
 
@@ -131,7 +131,7 @@ git push -u origin main
 code .
 ```
 
-Inside the container, add `SKIP_AUTH_BOOTSTRAP=1` to `.devcontainer/devcontainer.json` → `containerEnv` so the gh/railway prompts don't fire.
+Inside the container, add `SKIP_AUTH_BOOTSTRAP=1` to `.devcontainer/devcontainer.json` → `containerEnv` so the gh/railway/az login prompts don't fire.
 
 What you keep without GitHub: devcontainer build, Claude Code (CLI + extension), writable container-local Claude config volume, remote-first auto-push, `pre-commit` + `pre-push` hooks, auto semver bumps + local `v*` tags, and `template-sync.sh` (only needs anonymous HTTPS to github.com to pull template updates).
 
@@ -195,8 +195,8 @@ Contributors very welcome. Process for external changes:
 Good places to start:
 
 - File an issue describing a friction point in the workflow.
-- Add a stack-specific guide under `claude/` (right now: Node webapp and iOS+webapi).
-- Tighten a runbook section against a provider you use.
+- Add or improve a module under `modules/` (a new stack, or a deploy provider).
+- Tighten a deploy module's runbook against a provider you use.
 - Propose a cross-project rule via an issue (the shared rules repo is private; the issue is the right surface).
 
 By participating you agree to the project's MIT license. Be kind in reviews — bullets, no preamble, no recap.
