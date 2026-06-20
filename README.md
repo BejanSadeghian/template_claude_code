@@ -141,14 +141,15 @@ Fully air-gapped? Pre-pull `node:24-trixie` and drop `.template-source` (or igno
 
 ### Pull the latest template changes into a project
 
-Two ways:
+Short commands (aliases available in every container terminal):
 
-| Trigger | What happens |
+| Command | What it does |
 |---|---|
-| Rebuild / restart devcontainer | `post-create.sh --start` runs `template-sync.sh` automatically |
-| Manual | `bash scripts/template-sync.sh` from any terminal in the repo |
+| `template-status` | Show your version, whether you're behind upstream, and the commands. Read-only. |
+| `template-update` | Pull the latest template changes (interactive). Same as `bash scripts/template-sync.sh`. |
+| `update` | Update the installed CLIs (Claude Code, Railway, Azure). |
 
-Either pops an interactive prompt with a per-file diff and four choices: accept, reject (permanent for that SHA), defer (re-prompt next start), or skip-this-version.
+`template-status` runs and `docs/TEMPLATE.md` opens automatically on every container start, so you always see your version and update commands. `template-update` also auto-prompts on start when updates exist; it offers a per-file diff with four choices: accept, reject (permanent for that SHA), defer (re-prompt next start), or skip-this-version. It only touches template-owned paths — never your app code. See [`docs/TEMPLATE.md`](docs/TEMPLATE.md).
 
 ## Configuration
 
@@ -156,7 +157,9 @@ Either pops an interactive prompt with a per-file diff and four choices: accept,
 |---|---|---|
 | Container build args | `.devcontainer/devcontainer.json` → `build.args` | Node 24, Claude Code `latest`, git-delta, zsh-in-docker |
 | VS Code extensions | `.devcontainer/devcontainer.json` → `customizations.vscode.extensions` | anthropic.claude-code + sensible defaults |
-| Auto-open Claude Code on folder open | `.vscode/tasks.json` | on |
+| Auto-open Claude Code + template status on folder open | `.vscode/tasks.json` | on |
+| Window title | `.vscode/settings.json` → `window.title` | `${rootName}` (just the repo name) |
+| Window / title-bar color | `.vscode/settings.json` → `workbench.colorCustomizations` (delete file + rebuild for a new random hue) | random per repo |
 | `claudeCode.initialPermissionMode` | `.devcontainer/devcontainer.json` settings | `bypassPermissions` |
 | Skip auth bootstrap | env `SKIP_AUTH_BOOTSTRAP=1` | off |
 | Update bundled CLIs | run `update` (or `bash scripts/update.sh`); also runs on every container start | on start |
@@ -173,7 +176,7 @@ Either pops an interactive prompt with a per-file diff and four choices: accept,
 - **Model is never pinned.** Use `/model` to pick any model the running CLI supports (including the latest, e.g. Fable). The choice persists in the writable container `settings.json`; nothing in this template hardcodes a model id.
 - **Async subagent dispatch requires `git worktree`.** The orchestrator uses isolated worktrees so parallel agents don't clobber each other.
 - **Provider-coupled examples.** `scripts/verify-deploy.sh`, `docs/runbook/*` are Railway-flavored. Replace per provider; keep the shape.
-- **Random title-bar color** is written to `.vscode/settings.json` on first start. Delete the file and rerun `post-create.sh` for a new hue.
+- **Window title + title-bar color** are written to `.vscode/settings.json` on first start: `window.title` = `${rootName}` (just the repo name, no "Dev Container:" prefix) and a random per-repo color under `workbench.colorCustomizations`. Edit either there; delete the file and rebuild for a new hue. See [`docs/TEMPLATE.md`](docs/TEMPLATE.md).
 
 ## Contributing
 

@@ -24,6 +24,7 @@ PATHS=(
     .github
     claude
     scripts/template-sync.sh
+    scripts/template-status.sh
     scripts/setup-hooks.sh
     scripts/verify-deploy.sh
     scripts/bump-version.sh
@@ -34,6 +35,7 @@ PATHS=(
     hooks/pre-commit
     hooks/pre-push
     docs/runbook
+    docs/TEMPLATE.md
     CLAUDE.md
 )
 

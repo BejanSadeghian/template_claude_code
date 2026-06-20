@@ -22,7 +22,8 @@ fi
 
 cd "$WORKSPACE"
 
-# Step 2: stable random titleBar color per project (only set if missing)
+# Step 2: stable random titleBar color + clean window title per project (only set if missing).
+# Edit .vscode/settings.json afterwards to change either — see docs/TEMPLATE.md.
 SETTINGS=".vscode/settings.json"
 if [ ! -f "$SETTINGS" ] || ! grep -q "titleBar.activeBackground" "$SETTINGS" 2>/dev/null; then
     mkdir -p .vscode
@@ -44,6 +45,7 @@ PY
 )
     cat > "$SETTINGS" <<JSON
 {
+  "window.title": "\${rootName}",
   "workbench.colorCustomizations": {
     "titleBar.activeBackground": "$BG",
     "titleBar.activeForeground": "$FG",
@@ -56,7 +58,7 @@ PY
   }
 }
 JSON
-    echo "Set window banner color to $BG (hue $HUE)"
+    echo "Set window title to repo name and banner color to $BG (hue $HUE)"
 fi
 
 # Step 3: gh auth status (best-effort — don't fail container on this)

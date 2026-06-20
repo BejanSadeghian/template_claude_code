@@ -19,6 +19,23 @@
       }
     },
     {
+      "label": "template-status",
+      "detail": "Show template version + whether you're behind upstream, and open docs/TEMPLATE.md.",
+      "type": "shell",
+      "command": "bash scripts/template-status.sh; code docs/TEMPLATE.md || true",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
       "label": "open-claude-code",
       "detail": "Best-effort: open the Claude Code panel on folder open. Falls back silently if the command id differs.",
       "type": "shell",
