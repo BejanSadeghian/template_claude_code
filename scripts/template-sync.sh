@@ -28,6 +28,7 @@ PATHS=(
     scripts/template-status.sh
     scripts/module.sh
     scripts/setup.sh
+    scripts/feature-board.sh
     scripts/setup-hooks.sh
     scripts/bump-version.sh
     scripts/update.sh

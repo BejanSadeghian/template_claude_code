@@ -67,13 +67,14 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a "alias claude='claude --dangerously-skip-permissions'" \
     -a "alias setup='bash /workspace/scripts/setup.sh'" \
     -a "alias module='bash /workspace/scripts/module.sh'" \
+    -a "alias feature-board='bash /workspace/scripts/feature-board.sh'" \
     -a "alias update='bash /workspace/scripts/update.sh'" \
     -a "alias template-status='bash /workspace/scripts/template-status.sh'" \
     -a "alias template-update='bash /workspace/scripts/template-sync.sh'" \
     -x
 
 # Same aliases for bash (devcontainer terminals occasionally use it)
-RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias setup='bash /workspace/scripts/setup.sh'\nalias module='bash /workspace/scripts/module.sh'\nalias update='bash /workspace/scripts/update.sh'\nalias template-status='bash /workspace/scripts/template-status.sh'\nalias template-update='bash /workspace/scripts/template-sync.sh'\n" >> /home/node/.bashrc
+RUN printf "alias claude='claude --dangerously-skip-permissions'\nalias setup='bash /workspace/scripts/setup.sh'\nalias module='bash /workspace/scripts/module.sh'\nalias feature-board='bash /workspace/scripts/feature-board.sh'\nalias update='bash /workspace/scripts/update.sh'\nalias template-status='bash /workspace/scripts/template-status.sh'\nalias template-update='bash /workspace/scripts/template-sync.sh'\n" >> /home/node/.bashrc
 
 # Claude Code + globally useful CLIs
 RUN npm install -g \
