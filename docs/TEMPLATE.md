@@ -49,9 +49,18 @@ Each is a short alias for `bash scripts/<name>.sh` — type the short name from 
 ## Auth (no passwords by default)
 
 On first container start, `gh`, `railway`, and `az` log in via **browser / device-code**
-flow — no username or password typed. To force credential/token entry instead, choose
-"username/password" in `setup` (sets `Auth: password` in `claude/project.md`) or set
-`CLAUDE_AUTH_WEB=0`. Skip auth entirely with `SKIP_AUTH_BOOTSTRAP=1`.
+flow — no username or password typed. GitHub is requested with the scopes the template
+needs: **`repo`, `workflow`, `project`, `read:org`**. The `workflow` scope is required —
+without it, pushing any commit that adds a `.github/workflows/*` file (every CI/deploy
+module) is rejected. An existing login missing `workflow`/`project` is auto-refreshed.
+
+To force credential/token entry instead of the browser flow, choose "username/password"
+in `setup` (sets `Auth: password` in `claude/project.md`) or set `CLAUDE_AUTH_WEB=0`.
+Skip auth entirely with `SKIP_AUTH_BOOTSTRAP=1`.
+
+> Per-repo Actions **secrets** (`ANTHROPIC_API_KEY`, `RAILWAY_TOKEN`, `AZURE_CREDENTIALS`)
+> are separate from your `gh` login — add them in the repo's Settings → Secrets. The
+> `GITHUB_TOKEN` used *inside* workflows is scoped by each workflow's `permissions:` block.
 
 ## Window appearance (title + color)
 

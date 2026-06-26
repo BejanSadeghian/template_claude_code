@@ -24,21 +24,38 @@ echo "── auth bootstrap ─────────────────�
 [ "$AUTH_WEB" = "1" ] && echo "  mode: web (browser / device code — no passwords)" \
                       || echo "  mode: credentials (CLAUDE_AUTH_WEB=0 / Auth: password)"
 
-# GitHub
+# GitHub — request the scopes this template needs:
+#   repo      push code (private repos)
+#   workflow  push .github/workflows/* (REQUIRED — CI/deploy modules add workflows;
+#             without it, any push touching a workflow file is rejected by GitHub)
+#   project   GitHub Projects (v2) read/write
+#   read:org  org membership / teams
+GH_SCOPES="repo,workflow,project,read:org"
 if command -v gh >/dev/null 2>&1; then
     if ! gh auth status >/dev/null 2>&1; then
         if [ "$AUTH_WEB" = "1" ]; then
             echo "GitHub: not logged in. Launching browser device flow…"
             echo "  → open the printed github.com URL in your host browser and enter the code."
-            gh auth login --hostname github.com --git-protocol https --web \
-                || echo "  (gh login skipped/failed — re-run: gh auth login -w)"
+            gh auth login --hostname github.com --git-protocol https --web --scopes "$GH_SCOPES" \
+                || echo "  (gh login skipped/failed — re-run: gh auth login -w -s $GH_SCOPES)"
         else
             echo "GitHub: not logged in. Interactive credential/token entry…"
-            gh auth login --hostname github.com --git-protocol https \
-                || echo "  (gh login skipped/failed — re-run: gh auth login)"
+            gh auth login --hostname github.com --git-protocol https --scopes "$GH_SCOPES" \
+                || echo "  (gh login skipped/failed — re-run: gh auth login -s $GH_SCOPES)"
         fi
     else
-        echo "GitHub: ✓ logged in"
+        # Already logged in — ensure workflow + project scopes (older logins lack them).
+        have="$(gh auth status 2>&1 | grep -io "token scopes:.*" || true)"
+        need=""
+        case "$have" in *workflow*) ;; *) need="workflow" ;; esac
+        case "$have" in *project*) ;; *) need="${need:+$need,}project" ;; esac
+        if [ -n "$need" ]; then
+            echo "GitHub: ✓ logged in — adding missing scope(s): $need"
+            gh auth refresh --hostname github.com --scopes "$need" \
+                || echo "  (scope refresh skipped/failed — re-run: gh auth refresh -s $need)"
+        else
+            echo "GitHub: ✓ logged in (repo, workflow, project)"
+        fi
     fi
 else
     echo "GitHub: gh not installed; skipping"
