@@ -1,0 +1,82 @@
+name: Deploy (staged)
+
+# Same flow every time: release → dev (auto) → staging (manual approval) → prod (manual approval).
+# The manual gates come from GitHub Environment "required reviewers" — configure them once
+# with scripts/setup-environments.sh (or in repo Settings → Environments).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write        # semantic-release creates tags + GitHub Releases
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false   # never cancel an in-flight deploy
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.semrel.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - id: semrel
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx -y semantic-release || true   # computes next semver, tags, GitHub Release
+          echo "version=$(git describe --tags --abbrev=0 2>/dev/null || echo none)" >> "$GITHUB_OUTPUT"
+
+  dev:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: dev            # no gate → automatic
+    timeout-minutes: 20
+    env:
+      RELEASE_VERSION: ${{ needs.release.outputs.version }}
+      APP_URL: ${{ vars.APP_URL }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/deploy.sh dev
+      - run: bash scripts/verify-deploy.sh dev
+
+  staging:
+    needs: [release, dev]
+    runs-on: ubuntu-latest
+    environment: staging        # add required reviewers → manual approval gate
+    timeout-minutes: 20
+    env:
+      RELEASE_VERSION: ${{ needs.release.outputs.version }}
+      APP_URL: ${{ vars.APP_URL }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/deploy.sh staging
+      - run: bash scripts/verify-deploy.sh staging
+
+  prod:
+    needs: [release, staging]
+    runs-on: ubuntu-latest
+    environment: production     # add required reviewers → manual approval gate
+    timeout-minutes: 20
+    env:
+      RELEASE_VERSION: ${{ needs.release.outputs.version }}
+      APP_URL: ${{ vars.APP_URL }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/deploy.sh prod
+      - run: bash scripts/verify-deploy.sh prod

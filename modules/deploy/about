@@ -1,0 +1,1 @@
+Staged CD: release (semantic-release) → dev (auto) → staging (manual approval) → prod (manual approval). Provider-agnostic (railway/azure).

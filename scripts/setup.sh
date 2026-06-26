@@ -24,8 +24,12 @@ case "$(ask 'Enable CI workflows? [Y/n]:' Y)" in n|N|no) CI=off;; *) CI=on;; esa
 echo "Deploy target(s):   none | railway | azure   (comma-separate for multiple)"
 DEPLOY="$(ask 'choose [none]:' none | tr -d ' ')"
 
+case "$(ask 'Deploy Storybook to Railway? [y/N]:' N)" in y|Y|yes) SB=railway;; *) SB=off;; esac
+
 echo "Auth login:   1) web/browser (no password)   2) username/password"
 case "$(ask 'choose [1]:' 1)" in 2|password) AUTH=password;; *) AUTH=web;; esac
+
+OWNER="$(gh repo view --json owner -q .owner.login 2>/dev/null || echo '')"
 
 mkdir -p claude
 cat > claude/project.md <<EOF
@@ -38,6 +42,29 @@ Claude reads this and follows it. Regenerate with \`setup\`.
 - CI: $CI               # on | off
 - Deploy: $DEPLOY       # none | railway | azure (comma-separated)
 - Auth: $AUTH           # web | password
+
+## Feature board (GitHub Project)
+
+Bootstrap/refresh with \`bash scripts/feature-board.sh\` (needs the gh \`project\` scope).
+
+- owner: $OWNER
+- board:            # Project named after this repo (filled by feature-board.sh)
+- project-id:       # PVT_...
+- status-field-id:  # PVTSSF_...
+- option Presented: #
+- option Active:    #
+- option Verify:    #
+- option Closed:    #
+
+## Deployment (staged)
+
+- stages: dev → staging → prod
+- dev: auto on push to \`main\`
+- staging: manual approval (GitHub Environment required reviewers)
+- prod: manual approval
+- versioning: semantic-release (conventional commits → vX.Y.Z); staging & prod tag a release
+- targets: $DEPLOY        # none | railway | azure | railway,azure
+- storybook: $SB         # off | railway — if on, keep in sync with every UI change
 EOF
 echo "wrote claude/project.md"
 
@@ -47,13 +74,15 @@ if [ "$CI" = "off" ]; then
     echo "CI disabled — removed .github/workflows"
 fi
 if [ -n "$DEPLOY" ] && [ "$DEPLOY" != "none" ]; then
-    OLD_IFS="$IFS"; IFS=','
-    for d in $DEPLOY; do [ -n "$d" ] && bash scripts/module.sh add "deploy-$d"; done
-    IFS="$OLD_IFS"
+    bash scripts/module.sh add deploy || true   # staged dev→staging→prod pipeline
 fi
+[ "$SB" = "railway" ] && bash scripts/module.sh add storybook
 
 echo "─────────────────────────────────────────────────────"
 echo "Done."
+[ -n "$DEPLOY" ] && [ "$DEPLOY" != "none" ] && \
+  echo "  • Deploy: run scripts/setup-environments.sh <you> to add staging/prod approval gates."
+echo "  • Feature board: run feature-board to create the GitHub Project + capture its IDs."
 echo "  • Optional extras: module add agentic-e2e compliance lighthouse claude-action"
 echo "  • Edit claude/preferences.md for always-follow custom rules (e.g. where todos live)."
 echo "  • Auth mode '$AUTH' applies next container start (or run: bash scripts/auth-bootstrap.sh)."

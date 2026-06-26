@@ -1,0 +1,43 @@
+name: Storybook
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storybook-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  storybook:
+    if: hashFiles('.storybook/**') != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: storybook
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build-storybook
+      - name: Deploy Storybook to Railway (optional)
+        if: ${{ env.RAILWAY_TOKEN != '' }}
+        run: |
+          npm i -g @railway/cli@4
+          railway up --service "${STORYBOOK_SERVICE:-storybook}"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static
+          retention-days: 14
